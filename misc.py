@@ -291,7 +291,7 @@ def create_maps_orth(embeddings):
   return np.array(maps)  
   
 def mse(maps, embeds):
-  mses = np.zeros( maps.shape)
+  mses = np.zeros( maps.shape[:2])
   for i in range(len(embeds)):
     for j in range(len(embeds)):
       mses[i,j] = np.mean(np.sqrt(np.dot(np.square(np.dot(embeds[i], maps[i,j][0]) - embeds[j]), np.ones((embeds[j].shape[1],)))))
@@ -300,5 +300,19 @@ def mse(maps, embeds):
 def print_mat(m):
   for i in range(m.shape[0]):
     for j in range(m.shape[1]):
-      print('|%.3f' % m[i,j], end='\t')
+      print('|%.2f' % m[i,j], end='\t')
     print('|')
+
+
+    
+class MyCorpus(object):
+  def __init__(self, fname):
+    self.fname = fname
+    self.dictionary = gensim.corpora.Dictionary([self.tokenize(l) for l in codecs.open(fname,'r','utf-8')])
+  def __iter__(self):
+    with codecs.open(self.fname, 'r', 'utf-8') as file:
+      for line in file:
+        yield self.dictionary.doc2bow(self.tokenize(line))
+  def tokenize(self, line):
+    info = line.split('\t',1)[1]
+    return re.findall('\w(?:\w|[-\'])+\w', info.lower())

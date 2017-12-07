@@ -23,8 +23,8 @@ def read_data(filename):
 			info = line.split('\t',1)
 			if len(info) < 2:
 				continue
-			line = info[1]
-			sents.append(re.sub('(($| )\W+|\W+( |^))', ' ' , line.strip().split('\t',1)[-1].lower()).split())
+			for s in re.findall('[^.?!]+', info[1]):
+				sents.append(' '.join(re.findall('\w(?:\w[-\'])*\w', line.lower())))
 	return sents
 		
 
