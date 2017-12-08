@@ -267,7 +267,7 @@ def plot_with_labels(low_dim_embs, labels, filename):
                  va='bottom')
 
   plt.savefig(filename)
-  plt.show()
+  #plt.show()
 
 if __name__=='__main__':
 	main()
