@@ -51,22 +51,103 @@
 
 %%% END Article customizations
 
+
+
+\usepackage[table]{xcolor}
+\usepackage{geometry}
+\usepackage{pdflscape}
+
 %%% The "real" document content comes below...
 
-\title{Brief Article}
-\author{The Author}
+\title{Translating a Classifier}
+\author{Patrick Martin}
 %\date{} % Activate to display a given date or no date (if empty),
          % otherwise the current date is printed 
 
 \begin{document}
 \maketitle
 
-\section{First section}
+\section{Overview}
 
-Your text goes here.
 
-\subsection{A subsection}
 
-More text.
+\subsection{The Data}
+
+In order to work on translating a classifier, I need similar data in different languages. The first thing I'm going to use is reddit, starting with March 2017 (and adding others if I need more data), using langdetect (https://pypi.python.org/pypi/langdetect) on comments that have at least 15 unique words. I'm going to try to pull 10k each of Spanish, French, and Italian. Unfortunately this is either slow or sparse, and is taking a while. Hopefully it will finish by tomorrow or something.
+
+Alternatively/additionally, if I can find different-language wikipediae, I can use page category as the classes.
+
+\subsubsection{LID data}
+
+We can make sure the LID worked reasonably well by checking the subreddits represented
+
+
+\rowcolors{2}{gray!25}{white}
+\begin{tabular}{l|c}
+\rowcolor{gray!50} Subreddit & Count  \\
+argentina & 4,632 \\
+mexico & 1,840 \\
+podemos\footnote{Spanish political party} & 1,622 \\
+chile & 592 \\
+vzla & 280 \\
+Argaming & 87 \\
+Spanish & 80 \\
+uruguay & 75 \\
+PuertoRico & 50 \\
+Colombia & 44 \\
+
+\end{tabular}
+\footnotetext[1]{Spanish political party}
+\begin{tabular}{l|c}
+\rowcolor{gray!50} Subreddit & Count  \\
+france & 7,772 \\
+Quebec & 1,052 \\
+montreal & 197 \\
+ParisComments & 116 \\
+French & 44 \\
+Lyon  & 35 \\
+FiascoQc & 34 \\
+SquaredCircle\_FR & 32 \\
+effondrement & 27 \\
+melenchon & 23 
+\end{tabular}
+\begin{tabular}{l|c}
+\rowcolor{gray!50} Subreddit & Count  \\
+italy & 7,862 \\
+oknotizie & 525 \\
+ItalyInformatica & 351 \\
+italy\_SS & 327 \\
+italygames & 86 \\
+perlediritaly & 69 \\
+lisolachece & 62 \\
+Romania & 61 \\
+ItaliaPersonalFinance & 54 \\
+ItalyMotori & 40
+\end{tabular}
+
+\subsubsection{Subreddit corpora}
+
+Using the data from the LID stuff, we can also just create the corpora by using all the posts from some subreddits. I propose\footnote{We'll fix this later} \\
+
+\begin{tabular}{c}
+\rowcolor{gray!50} Spanish  \\
+argentina \\
+mexico \\
+chile \\
+vzla \\
+uruguay \\
+Colombia \\
+\end{tabular}
+\begin{tabular}{c}
+\rowcolor{gray!50} French  \\
+france \\
+Quebec \\
+montreal \\
+Lyon  \\
+\end{tabular}
+\begin{tabular}{c}
+\rowcolor{gray!50} Italian  \\
+italy \\
+\end{tabular}
 
 \end{document}
