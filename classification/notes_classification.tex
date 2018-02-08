@@ -150,4 +150,79 @@ Lyon  \\
 italy \\
 \end{tabular}
 
+\section{Classifier}
+
+In order to make this work, we need to have some aspect that we're trying to classify against. One thing that has been done in the past is classification based on subreddit; based on the subreddits represented this could be possible: national subreddit (argentina, france, italy), gaming (Argaming, jeuxvideo, italygames), however maybe not much else. For reference, these are the fields I have to work with for each comment: \\
+
+\begin{tabular}{c c c c c} 
+author & author\_flair\_css\_class & author\_flair\_text & body & controversiality \\
+created\_utc & distinguished & edited & gilded & id \\
+ link\_id & parent\_id & retrieved\_on & score & stickied \\
+ subreddit & subreddit\_id \end{tabular}
+
+Here are what I think:
+\begin{itemize}
+\item Controversiality \\
+\emph{Pro:} Should be fairly language independent \\
+\emph{Con:} Pretty sparse, only about 3\% of the documents are ``controversial''. Controversial comments might tend to be in English, as well (comments from outsiders)
+
+\item Score: (binned) \\
+\emph{Pro:} Should be fairly language independent \\
+\emph{Con:} Borderlines between bins might be difficult, also more extreme scores are very sparse (< 0.2\% have scores of at least 100)
+
+\includegraphics[scale=0.5]{spanish_score.png}
+
+\item Gilded: (binary) \\
+\emph{Pro:} Should be fairly language independent \\
+\emph{Con:} Extremely sparse ( < 0.03\% have been gilded)
+
+\item Subreddit: \\
+\emph{Pro:} Definitely influenced by context \\
+\emph{Con:} Might be biased either towards games that are available in the given language, or the text will involve a lot of English.
+
+\item Flair (submissions): \\
+\emph{Pro:} Human-decided topic labels
+\emph{Con:} Submissions are not as common as comments, and the flairs across different subreddits might not align perfectly. Additionally, the title might not represent the content of the link perfectly.
+\end{itemize}
+
+The last idea just sort of came to me while looking at the subreddits. Using title text of submissions might be a good side project if this turns promising. To be specific, this is the number of comments in the smallest class for each of \emph{gilded}, \emph{controversial}, and \emph{score}. (For \emph{gilded} and \emph{controversial}, this is the number of positive examples). \\
+
+\begin{tabular}{|c|c|c|c|}
+& Gilded&Contro &Score \\
+Spanish-sub & 3& 347& 123\\
+Spanish & 0& 52& 16\\
+French-sub & 1& 423& 70\\
+French & 0 & 64& 10\\
+Italian-sub & 1& 189& 24\\
+Italian & 1& 59& 15\\
+\end{tabular}
+
+First, it's pretty clear that gilded isn't going to work well at all. Second, the bins for score might need to be refined.
+
+\section{Initial Classifiers}
+
+I divided my data into 80\% train and 20\% test and ran a couple classifiers on all of the data. Since \emph{score} is multi-class, the default F1 score doesn't make sense, all of these classifiers will be evaluated on the harmonic mean of the fscores for each class\footnote{Is this a real thing?}. I'm not sure if this is actually something that's really used, but it will work for our comparison purposes.
+
+\begin{tabular}{|c|c|c|c|}
+\rowcolor{gray!50}\multicolumn{4}{|c|}{naive bayes} \\
+& Gilded&Contro&Score \\
+Spanish-sub & 0.0100& 0.0001& 0.0002\\
+Spanish & 1.0000& 0.0007& 0.0013\\
+French-sub & 0.0392& 0.0185& 0.0002\\
+French & err& 0.0006& 0.0004\\
+Italian-sub & 0.0392& 0.0002& 0.0004\\
+Italian & 0.0392& 0.0006& 0.0011\\
+\end{tabular}
+\quad \rowcolors{2}{gray!25}{white}
+\begin{tabular}{|c|c|c|c|}
+\rowcolor{gray!50}\multicolumn{4}{|c|}{logistic regression} \\
+& Gilded&Contro&Score \\
+Spanish-sub & 0.0100& 0.1551& 0.1145\\
+Spanish & err& 0.0004& 0.1513\\
+French-sub & 0.0198& 0.1889& 0.0644\\
+French & err& 0.1523& 0.0079\\
+Italian-sub & 0.0392& 0.1902& 0.0038\\
+Italian & err& 0.1198& 0.0057\\
+\end{tabular}
+
 \end{document}
