@@ -225,4 +225,93 @@ Italian-sub & 0.0392& 0.1902& 0.0038\\
 Italian & err& 0.1198& 0.0057\\
 \end{tabular}
 
+
+
+\section{Bootstrapping}
+Recalling that controversial comments make up about 3\% of the documents, and that classifiers are remarkably bad at picking them out, could we maybe train up a classifier to pick them out by bootstrapping? First, a look at the data:\\
+\begin{tabular}{|c|c|c|c|}
+\rowcolor{gray!50} & \# Documents & \# Controversial & \% \\
+Spanish & 163,057 & 5,243 & 3.2\% \\
+French & 207,348 & 9,449 & 4.6\% \\
+Italian & 79,479 & 3,048 & 3.8\% \end{tabular}\\
+
+
+We're going to look at Spanish first. Here is the (initial) algorithm:
+
+\begin{enumerate}
+\item Pick 5,000 documents at random (Random init)
+\item Train some classifiers on those documents, splitting the 5,000 into random 80\% train and 20\% test sets (NOTE: these are not the same for each classifier)
+We'll use Naive Bayes (NB) and Logistic Regression (LR), run three different times. The table will show the one that works best
+\item Pick the classifier with the best f-score, and run it over all the documents
+\item Pick the 5,000 documents rated most likely to be controversial by that classifier, excluding any documents previously seen
+\item Repeat
+\end{enumerate}
+
+%\begin{tabular}{|c|c|c|l|l|l|l|}
+%\rowcolor{gray!50} &&& \multicolumn{4}{|c|}{Classifier f-score} \\
+%\rowcolor{gray!50} & Doc count & \# Yes & NB1\footnotemark & NB2 & LR1\footnotemark & LR2 \\
+%Random init & 5000 & 140 & 0 & 0 & 0 & \textbf{0.18} \\
+%Round 1 & 9983 & 451 (+311) & 0 & 0 & 0.079 & \textbf{0.086} \\
+%Round 2 & 14983 & 720 (+269) & 0 & 0 & \textbf{0.097} & 0.085 \\
+%Round 3 & 19983 & 970 (+250) & 0 & 0 & 0.11 & 0.14 \\
+%\end{tabular}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 172 (3.4\%)& 172 & 0 & \textbf{0.087} \\
+Round 1 & 5000 & 399 (8.0\%) & 437 (+265)& 0 & \textbf{0.077} \\
+Round 2 & 5000 & 574 (11.5\%) & 683 (+246) & 0 & \textbf{0.16} \\
+Round 3 & 5000 & 710 (14.2\%) & 928 (+245) & 0 & \textbf{0.097} \\
+\end{tabular}
+\\
+Some initial takeaways are that Naive Bayes just can't learn in this environment, but otherwise this process does work. Let's modify the algorithm to see if we can't make Naive Bayes a little happier:
+
+\begin{enumerate}
+\item Pick 5,000 documents at random (Random init)
+\item Train some classifiers on \emph{a subset of the documents, making sure positive documents comprise 33\% of the dataset}, splitting \emph{it}	 into random 80\% train and 20\% test sets (NOTE: these are not the same for each classifier)
+We'll use Naive Bayes (NB) and Logistic Regression (LR), run three different times. The table will show the one that works best
+\item Pick the classifier with the best f-score, and run it over all the documents
+\item Pick the 5,000 documents rated most likely to be controversial by that classifier, excluding any documents previously seen
+\item Repeat
+\end{enumerate}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 173 (3.5\%) & 173 & \textbf{0.16} & 0.30 \\
+Round 1 & 5000 & 381 (7.6\%) & 429 (+256) & \textbf{0.36} & 0.43 \\
+Round 2 & 5000 & 553 (11.1\%) & 702 (+273) & \textbf{0.31} & 0.40 \\
+Round 3 & 5000 & 724 (14.5\%) & 1000 (+298) & \textbf{0.38}  & 0.47
+\end{tabular}
+\\
+Indeed, this did help Naive Bayes get on the scoreboard. Both it and LR improved drastically, although LR still remained ahead. For this batch I decided to bootstrap based on the best NB classifier, to see if it bootstrapped well. Indeed, the general results are very similar. How does this work for French?
+
+\begin{tabular}{|c|l|l|l|l|l|}
+\multicolumn{6}{|c|}{Without subsetting} \\
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 216 (4.3\%) & 216 & 0 & \textbf{0.10} \\
+Round 1 & 5000 &  571 (11.4\%) & 621 (+405)& 0.017 & \textbf{0.12} \\
+Round 2 & 5000 & 883 (17.7\%) & 1034 (+413)& 0 & \textbf{0.17} \\
+Round 3 & 5000 & 1124 (22.5\%) & 1432 (+398) & 0.0067 & \textbf{0.16} \\
+\end{tabular}
+\\
+\begin{tabular}{|c|l|l|l|l|l|}
+\multicolumn{6}{|c|}{With subsetting} \\
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 243 (4.9\%) & 243 & \textbf{0.42} & 0.49 \\
+Round 1 & 5000 & 533 (10.7\%) & 637 (+394)& \textbf{0.35} & 0.44 \\
+Round 2 & 5000 & 828 (16.6\%) & 1095 (+458)& \textbf{0.36} & 0.44 \\
+Round 3 & 5000 & 1041 (20.8\%) & 1523 (+428)& \textbf{0.38} & 0.44 \\
+\end{tabular}
+
+Looks like it works very similarly, with a bonus probably because French has more controversial posts. 
+
+\section{Translating a Classifier}
+The reason we used word tokenization for the classifiers on the bootstrapping, and why we wanted Naive Bayes to work well, is that we're going to try to translate a classifier that works on Spanish to one that works on French.
+
+Here's the initial plan:
+\begin{enumerate}
+\item Grab all the Spanish words that occur 
+
 \end{document}

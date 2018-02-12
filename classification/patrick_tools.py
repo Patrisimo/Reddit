@@ -9,27 +9,30 @@ import gzip
 import re
 
 def write_probabilities(data, output_file):
-	# Taken from steamroller.tools.io
-	writer = codecs.getwriter("utf-8")
-	"""
-	data = {"ID" : ("GOLD", {"LAB1" : logprob, ... })
-	}
-	"""
-	codes = set()
-	for i, (gold, probs) in data.items():
-			for l in probs.keys():
-					codes.add(l)
-	codes = sorted(codes)
-	with writer(gzip.open(output_file, "w")) as ofd:
-			ofd.write("\t".join(["DOC", "GOLD"] + codes) + "\n")
-			for cid, (label, probs) in data.items():
-					ofd.write("\t".join([cid, label] + [str(probs.get(c, float("-inf"))) for c in codes]) + "\n")
+  # Taken from steamroller.tools.io
+  writer = codecs.getwriter("utf-8")
+  """
+  data = {"ID" : ("GOLD", {"LAB1" : logprob, ... })
+  }
+  """
+  codes = set()
+  for i, (gold, probs) in data.items():
+      for l in probs.keys():
+          codes.add(l)
+  codes = sorted(codes)
+  with writer(gzip.open(output_file, "wb")) as ofd:
+      ofd.write("\t".join(["DOC", "GOLD"] + codes) + "\n")
+      for cid, (label, probs) in data.items():
+          ofd.write("\t".join([cid, label] + [str(probs.get(c, float("-inf"))) for c in codes]) + "\n")
 
 
-def read_data(file, none):
-	with codecs.open(file, 'r', 'utf-8') as infile:
-		for line in infile:
-			yield line.split('\t',2)
+def read_data(file, to_choose=[]):
+  reader = codecs.getreader('utf-8')
+  choices = set(to_choose)
+  with reader(gzip.open(file)) as infile:
+    for i,line in enumerate(infile):
+      if len(choices) == 0 or i in choices:
+        yield line.split('\t',2)
 
 def extract_character_ngrams(text, n):
     stack = ["NULL" for _ in xrange(n)]
