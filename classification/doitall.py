@@ -123,7 +123,7 @@ def pick_from_classifier(ops):
   try:
     with open(ops.already_seen) as file:
       seen = set(json.load(file))
-  except FileNotFoundError:
+  except (FileNotFoundError, TypeError):
     logging.warning('already seen json file not found')
     seen = set()
   # First, run the classifier over everything

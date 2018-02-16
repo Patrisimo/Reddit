@@ -305,13 +305,67 @@ Round 2 & 5000 & 828 (16.6\%) & 1095 (+458)& \textbf{0.36} & 0.44 \\
 Round 3 & 5000 & 1041 (20.8\%) & 1523 (+428)& \textbf{0.38} & 0.44 \\
 \end{tabular}
 
-Looks like it works very similarly, with a bonus probably because French has more controversial posts. 
+Looks like it works very similarly, with a bonus probably because French has more controversial posts.
+
+\subsection{Pruning with Logistic Regression}
+
+On the pruning experiments, I purposely chose to snowball the Naive Bayes to make sure it actually worked. However, Logistic Regression still had better F-scores, and so it's worth seeing how it does: \\
+
+\begin{tabular}{|c|l|l|l|l|l|}
+\multicolumn{6}{|c|}{Spanish} \\
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 170 & 170 & 0.24 & 0.49 \\
+Round 1 & 5000 & 397 & 460 (+291) & 0.29 & 0.42 \\
+Round 2 & 5000 & 577 & 732 (+272) & 0.38 & 0.38 \\
+Round 3 & 5000 & 745 & 1029 (+297) & 0.25 & 0.42 \\
+\end{tabular} \\
+\begin{tabular}{|c|l|l|l|l|l|}
+\multicolumn{6}{|c|}{French} \\
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 226 & 226 & 0.23 & 0.34 \\
+Round 1 & 5000 & 434 & 572 & 0.21 & 0.46 \\
+Round 2 & 5000 & 772 & 992 & 0.24 & 0.35 \\
+Round 3 & 5000 & 1026 & 1413 & 0.28 & 0.44 \\
+\end{tabular}
 
 \section{Translating a Classifier}
-The reason we used word tokenization for the classifiers on the bootstrapping, and why we wanted Naive Bayes to work well, is that we're going to try to translate a classifier that works on Spanish to one that works on French.
+The reason we used word tokenization for the classifiers on the bootstrapping, and why we wanted Naive Bayes to work well, is that we're going to try to translate a classifier that works on Spanish to one that works on French. To start, we have a heavily bootstrapped (Round 9) that, in Spanish, has 1,542 of its 5,000 (30.8\%) best documents as controversial.
 
 Here's the initial plan:
 \begin{enumerate}
-\item Grab all the Spanish words that occur 
+\item Grab 250 Spanish words that heavily indic
+\end{enumerate}
+
+
+\begin{tabular}{|c|l|l|l|l|l|}
+\multicolumn{6}{|c|}{Without subsetting} \\
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Translated init & 5000 & 213 (4.3\%) & 213 & 0 & 0.05 \\
+Round 1 & 5000 &  537 (10.7\%) & 599 & 0.03 & 0.09 \\
+Round 2 & 5000 &  803 (16.1\%) & 979 & 0 & 0.14 \\
+Round 3 & 5000 & 1069 (21.4\%) & 1383 & 0.008 & 0.17 \\
+\end{tabular}
+
+\begin{tabular}{|c|l|l|l|l|l|}
+\multicolumn{6}{|c|}{With subsetting} \\
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Random init & 5000 & 213 & 213 & 0.25 & 0.39 \\
+Round 1 & 5000 & 298 & 415 & 0.28 & 0.42 \\
+Round 2 & 5000 & 620 & 738 & 0.32 & 0.45 \\
+Round 3 & 5000 & 764 & 1045 & 0.39 & 0.46 \\
+\end{tabular}
+
+\section{To-Do}
+Here's what's currently left to do:
+\begin{itemize}
+\item Evaluate Spanish to Spanish ``translation''
+\item Produce images of Spanish word embeddings with colors for controversiality (do same for French)
+\item Implement Logistic Regression translation
+\item Implement Topic Model similarity
+\end{itemize}
 
 \end{document}

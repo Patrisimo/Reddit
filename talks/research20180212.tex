@@ -220,11 +220,11 @@ R3 & 5000 & 1041 (20.8\%) & 1523 (+428)& \emph{0.38} & 0.44 \\
 
 \begin{frame}{The Plan}
 \begin{itemize}
-\item Assume our good classifier is Naive Bayes with word tokenization
+\item Assume our good classifier is Naive Bayes with word tokenization \\
 Ours will be about 30\% accurate
-\item Take 500 words that strongly indicate either `yes' or `no' to controversiality in this classifier
+\item Take 500 words that strongly indicate either `yes' or `no' to controversiality in this classifier \\
 250 from each side
-\item Translate those words to French
+\item Translate those words to French \\
 Google Translate for now...
 \item Build a new classifier from these words $<$--- This is the hard part
 \item Evaluate the quality
@@ -253,7 +253,7 @@ sorry & sorry & désolé \\
 \begin{frame}{Building a Classifier}
 \begin{itemize}
 \item Naive Bayes needs to know $p(word| class)$ for each word. 
-\item For the words we translated, this is pretty easy
+\item For the words we translated, this is pretty easy \\
 Just average the probabilities if the same word shows up multiple times
 \item But we can't make a classifier with only 500 words
 \end{itemize}
@@ -263,7 +263,7 @@ Just average the probabilities if the same word shows up multiple times
 \begin{itemize}
 \item As mentioned before, this is the potentially interesting part
 \item First attempt will be to get word similarities from Word2Vec on all the French comments, and
-\[ p(class|word) \approx \sum_{w~N_k(word)} p(class|w) sim(word,w) \]
+\[ p(class|word) \propto \sum_{w\in N_k(word)} p(class|w) sim(word,w) \]
 where $N_k(word)$ represents the $k$-nearest ``anchor'' words
 \item For now, $k=5$
 \item Use this to estimate probabilities for all words that occur at least 100 times (8,554)
@@ -295,6 +295,7 @@ R3 & 5000 & 1069 (21.4\%) & 1383 (+404)& 0.008 & \textbf{0.17} \\
 \item Different corpus for Word2Vec?
 \item Different formula for inference
 \end{itemize}
+\item Could translate other models
 \end{itemize}
 \end{frame}
 
