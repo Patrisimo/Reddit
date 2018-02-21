@@ -83,6 +83,8 @@ def test_batch(instances, gold, dv, label_lookup, classifier, data):
           data[cid] = (g, {k : v for k, v in zip(order, probs.flatten())})
   else:
       for pred, (cid, g) in zip(classifier.predict(X), gold):
+          if type(pred) != list:
+            pred = [pred]
           probs = [0.0 if i == pred[0] else float("-inf") for i in range(len(order))]
           data[cid] = (g, {k : v for k, v in zip(order, probs)})
   
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     
     # training
     if options.train and options.output and options.input:
-      train(options.output, options.input, options.token, options.type)
+      train(options.output, options.input, options.token, options.type, options.max_ngram, options.preproc, options.preproc_args)
  
     # testing
     elif options.test and options.model and options.output and options.input:

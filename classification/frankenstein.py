@@ -148,7 +148,7 @@ def make_nb(ops):
   newmodel.feature_log_prob_ = flp
   newmodel.feature_count_ = feature_count
 
-  logging.info('Saving new model i %s.model.gz' % ops.output)
+  logging.info('Saving new model in %s.model.gz' % ops.output)
   with gzip.open('%s.model.gz' % ops.output,'wb') as ofd:
     pickle.dump((newmodel, newdv, label_lookup),ofd)
     

@@ -4,6 +4,8 @@ from argparse import ArgumentParser
 import codecs
 import re
 import gzip
+from os import path
+import tarfile
 
 def options():
 	parser = ArgumentParser()
@@ -20,8 +22,11 @@ def main():
 # Read the data, one comment at a time
 class MyCorpus:
   def __init__(self, fname):
-    reader = codecs.getreader('utf-8')
-    self.file = reader(gzip.open(fname))
+    if path.splitext(fname)[1] == '.tgz':
+      self.file = Tgzfile(fname)
+    else:
+      reader = codecs.getreader('utf-8')
+      self.file = reader(gzip.open(fname))
     self.sents = []
   def __iter__(self):
     return self
@@ -45,6 +50,40 @@ class MyCorpus:
     except StopIteration:
       self.file.close()
       raise StopIteration
+    except Exception as e:
+      print(e)
+      
+class Tgzfile:
+  def __init__(self, fname):
+    self.closed = False
+    self.file = tarfile.open(fname)
+    self.members = self.file.getmembers()
+    print('Opening %s' % self.members[0].name)
+    self.current = self.file.extractfile(self.members[0].name)
+    
+  
+  def readline(self):
+    if self.file.closed:
+      raise StopIteration
+    while not self.file.closed:
+      try:
+        line = self.current.readline().decode('latin-1')
+        return '1\t2\t%s' % line
+      except StopIteration:
+        self.current.close()
+        self.members.pop(0)
+        if len(self.members) == 0:
+          print('Reading complete')
+          self.close()
+        else:
+          print('Opening %s' % self.members[0].name)
+          self.current = self.file.extractfile(self.members[0].name)
+    raise StopIteration
+    
+  def close(self):
+    self.closed = True
+    self.file.close()
+    self.current.close()
       
     
 		

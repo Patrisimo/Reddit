@@ -335,9 +335,18 @@ The reason we used word tokenization for the classifiers on the bootstrapping, a
 
 Here's the initial plan:
 \begin{enumerate}
-\item Grab 250 Spanish words that heavily indic
+\item Start with a fairly good classifier (30\% accuracy)
+\item Grab 500 words that strongly indicate either `yes' or `no' to controversiality in this classifier (250 from each side) 
+\item Translate those words to French
+\item Build a new classifier from these words
+\item Evaluate the quality
 \end{enumerate}
 
+For simplicity, we're just going to use Google Translate to translate the words. Additionally, our first attempt to build the classifier is to use word embeddings trained on the French corpus to infer controversiality based on similarity:
+
+\[ p(class|word) \propto \sum_{w\in N_k(word)} p(class|w) sim(word,w) \]
+
+where $N_k(word)$ represents the $k$-nearest ``anchor'' words, with $k$=5. This gives us probabilities for all 8,554 words that occur at least 100 times. So how does this do?\\
 
 \begin{tabular}{|c|l|l|l|l|l|}
 \multicolumn{6}{|c|}{Without subsetting} \\
@@ -348,7 +357,7 @@ Round 1 & 5000 &  537 (10.7\%) & 599 & 0.03 & 0.09 \\
 Round 2 & 5000 &  803 (16.1\%) & 979 & 0 & 0.14 \\
 Round 3 & 5000 & 1069 (21.4\%) & 1383 & 0.008 & 0.17 \\
 \end{tabular}
-
+\quad
 \begin{tabular}{|c|l|l|l|l|l|}
 \multicolumn{6}{|c|}{With subsetting} \\
 \rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
@@ -357,7 +366,45 @@ Random init & 5000 & 213 & 213 & 0.25 & 0.39 \\
 Round 1 & 5000 & 298 & 415 & 0.28 & 0.42 \\
 Round 2 & 5000 & 620 & 738 & 0.32 & 0.45 \\
 Round 3 & 5000 & 764 & 1045 & 0.39 & 0.46 \\
-\end{tabular}
+\end{tabular} \\
+
+Remember, this was French, so this does about as well as a random French model. Let's see if we can improve this at all.
+
+\subsection{Spanish to Spanish}
+
+To help improve the algorithm, let's take the translations out of it, and instead just build a new model on Spanish from a good original model. Doing the same process as before, we get \\
+
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Translated init & 5000 & 150 (3.0\%) & 150 & 0 & 0.09 \\
+Round 1 & 5000 &  392 (7.8\%) & 428 & 0 & 0.10 \\
+Round 2 & 5000 & 586 (11.7\%)& 689 & 0.01 & 0.11 \\
+Round 3 & 5000 & 697 (13.9\%) & 971 & 0 & 0.11
+\end{tabular} \\
+
+This is about on par with what we usually get. What if we look at the word embeddings?
+
+\subsubsection{Word Embeddings}
+
+The word embeddings were created using gensim word2vec on the Spanish reddit corpora. Reddit comments are incredibly terrible for NLP tools to work with, namely because
+\begin{itemize}
+\item Multiple authors \\
+\item Informal speech \\
+\item Multiple languages (mostly English) \\
+\item Short comments\end{itemize}
+
+So, how well is our word embedding doing? Let's check what words it considers "most similar" for some common words
+
+\begin{tabular}{c|c|c|c|c}
+\rowcolor{gray!50} nosotros & agua & argentina & hombre & tienda \\
+articulos & bariloche & llev\'abamos & denunicados & burocr\'aticas \\ 
+pas\'a & peleados & indicado & chaos & comunismo \\
+rpgs & paleont\'ologo & odies & uriburu & migratorio \\
+enojar & ajusten & curado & cerebral & militan \\
+apel\'o & machote & permiten & surprised & luca \end{tabular}
+
+
 
 \section{To-Do}
 Here's what's currently left to do:
