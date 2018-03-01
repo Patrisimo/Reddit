@@ -40,4 +40,11 @@ do
 	echo "^ lr2"
 	python doitall.py train_classifier $fname $docs logistic_regression bow ${basename}_lr3
 	echo "^ lr3"
+	
+	python doitall.py train_classifier $fname $docs svm bow ${basename}_svm1
+	echo "^ svm1"
+	python doitall.py train_classifier $fname $docs svm bow ${basename}_svm2
+	echo "^ svm2"
+	python doitall.py train_classifier $fname $docs svm bow ${basename}_svm3
+	echo "^ svm3"
 done

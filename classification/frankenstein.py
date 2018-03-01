@@ -12,6 +12,7 @@ import numpy as np
 
 def options():
   parser = ArgumentParser()
+  parser.add_argument('type', help='type of classification algorithm', choices=['naive_bayes','logistic_regression', 'svm'])
   subparsers = parser.add_subparsers(help='step to run', dest='method')
   
   parser_ex = subparsers.add_parser('extract_words', help='Extract words to translate')
@@ -19,18 +20,18 @@ def options():
   parser_ex.add_argument('k', type=int, help='How many words to extract')
   parser_ex.add_argument('output', help='Name of output files, will receive extension')
   
-  parser_bnb = subparsers.add_parser('make_nb', help='Create a naive bayes')
+  parser_bnb = subparsers.add_parser('make', help='Create a new parser')
   
-  parser_bnb.add_argument('source')
-  parser_bnb.add_argument('model')
-  parser_bnb.add_argument('embeddings')
-  parser_bnb.add_argument('translations')
-  parser_bnb.add_argument('corpus')
-  parser_bnb.add_argument('output')
+  parser_bnb.add_argument('source', help='json from extract_words')
+  parser_bnb.add_argument('model', help='previous model')
+  parser_bnb.add_argument('embeddings', help='.kv of word embeddings')
+  parser_bnb.add_argument('translations', help='translated from extract_words')
+  parser_bnb.add_argument('corpus', help='corpus of documents')
+  parser_bnb.add_argument('output', help='will receive extension')
   
   return parser.parse_args()
 
-def extract_words(ops):
+def extract_words_nb(ops):
   # TODO
   with gzip.open(ops.model) as ifd:
     classifier, dv, label_lookup = pickle.load(ifd)
@@ -151,11 +152,127 @@ def make_nb(ops):
   logging.info('Saving new model in %s.model.gz' % ops.output)
   with gzip.open('%s.model.gz' % ops.output,'wb') as ofd:
     pickle.dump((newmodel, newdv, label_lookup),ofd)
+
+
+def extract_words_lrsvm(ops):
+  # TODO
+  with gzip.open(ops.model) as ifd:
+    classifier, dv, label_lookup = pickle.load(ifd)
+  names = dv.get_feature_names()
+  
+  tokens = sorted(enumerate(classifier.coef_[0]), key=lambda x: x[1])
+  
+  to_translate = tokens[:ops.k//2]
+  to_translate.extend(tokens[-ops.k//2:])
+  
+  source_lang = [ (names[i], r) for i,r in to_translate]
+  
+  
+  with codecs.open('%s.txt' % ops.output,'w','utf-8') as file:
+    for w,r in source_lang:
+      file.write('%s\n' % w)
+  with codecs.open('%s.json' % ops.output, 'w', 'utf-8') as file:
+    json.dump(source_lang, file)
+  logging.info('Words saved to %s.txt, json with scores saved to %s.json' % (ops.output, ops.output))
+  
+      
+def make_lrsvm(ops):
+  with codecs.open(ops.source, 'r', 'utf-8') as file:
+    source = json.load(file)
+  with codecs.open(ops.translations,'r','utf-8') as file:
+    target  = []
+    for line, (w,coef) in zip(file, source):
+      target.append( (line.strip(), coef,w))
     
-methods = {'extract_words': extract_words,
-            'make_nb': make_nb}
+  
     
+  with gzip.open(ops.model) as ifd:
+    classifier, dv, label_lookup = pickle.load(ifd)
+  model = KeyedVectors.load(ops.embeddings)
+      
+  target_wdups = []
+  for w,coef,s in target:
+    for w_seg in w.lower().split(' '):
+      target_wdups.append( (w_seg,coef,s.lower()))
+      
+  joined_scores = {}    
+  for word,coef,source_word in target_wdups:
+    if source_word not in dv.vocabulary_:
+      continue
+    
+    if word in joined_scores:
+      old_coef, old_counts = joined_scores[word]
+    else:
+      old_coef, old_counts = 0, 0
+    joined_scores[word] = ((coef + old_coef * old_counts) / (1+old_counts), 1 + old_counts) 
+
+
+  anchors = []
+  anchor_words = {}
+  for w, (coef, c) in joined_scores.items():
+    if w in model.vocab:
+      anchors.append( (coef, model[w] / np.sqrt(np.square(model[w]).sum())))
+      anchor_words[w] = coef
+  
+  target_vocab = {}
+  reader = codecs.getreader('utf-8')
+  with reader(gzip.open(ops.corpus)) as file:
+    for line in file:
+      info = line.split('\t',2)
+      for w in re.findall('\w(?:\w|[-\'])*\w', info[2].lower()):
+        target_vocab[w] = 1+target_vocab.get(w,0)
+        
+  common_words = [(w,c) for w,c in target_vocab.items() if c > 100]
+  all_words = []
+  for w,c in common_words:
+    if w not in model.vocab:
+      continue
+    if w in anchor_words:
+      all_words.append( (w, anchor_words[w], c))
+      continue
+    vec = model[w] / np.sqrt(np.square(model[w]).sum())
+    
+    neighbs = [(coef, np.dot(v, vec)) for coef,v in anchors]
+    neighbs = sorted(neighbs, key=lambda x: x[1], reverse=True)[:5]
+    coef = sum( y*d for y,d in neighbs) / sum(d for _,d in neighbs)
+    all_words.append( (w, coef, c))
+
+  
+  coef_ = np.zeros( (1,len(all_words)))
+  total_words = sum(c for _,_,c in all_words)
+  y = label_lookup['1']
+  n = label_lookup['0']
+  all_words = sorted(all_words, key=lambda x: x[0])
+
+  newvocabulary = {}
+  newnames = []
+  newmodel = classifier
+  newdv = dv
+  for i,(w,p,c) in enumerate(all_words):
+    coef_[0,i] = p
+    newnames.append(w)
+    newvocabulary[w] = i
+    
+  newdv.feature_names_ = newnames
+  newdv.vocabulary_ = newvocabulary
+  newmodel.coef_ = coef_
+  
+
+  logging.info('Saving new model in %s.model.gz' % ops.output)
+  with gzip.open('%s.model.gz' % ops.output,'wb') as ofd:
+    pickle.dump((newmodel, newdv, label_lookup),ofd)
+    
+methods_nb = {'extract_words': extract_words_nb,
+            'make': make_nb}
+
+methods_lrsvm = {'extract_words': extract_words_lrsvm,
+            'make': make_lrsvm}
+
+            
 if __name__ == '__main__':
   ops = options()
   logging.basicConfig(level=logging.INFO)
-  methods[ops.method](ops)
+  if ops.type == 'naive_bayes':
+    methods_nb[ops.method](ops)
+  elif ops.type in {'logistic_regression', 'svm'}:
+    methods_lrsvm[ops.method](ops)

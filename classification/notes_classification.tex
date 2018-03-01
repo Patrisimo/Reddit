@@ -330,6 +330,61 @@ Round 2 & 5000 & 772 & 992 & 0.24 & 0.35 \\
 Round 3 & 5000 & 1026 & 1413 & 0.28 & 0.44 \\
 \end{tabular}
 
+
+\subsection{SVM}
+
+\begin{tabular}{|c|l|l|l|l|}
+\multicolumn{5}{|c|}{Without subsetting} \\
+\rowcolor{gray!50} &&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & SVM \\
+Translated init & 5000 & 151 (3.0\%) & 151 & 0.03 \\
+Round 1 & 5000 &  297 (6.0\%) & 329 & 0.06 \\
+Round 2 & 5000 & 423 (8.5\%) & 492 & 0.04 \\
+Round 3 & 5000 & 593 (11.9\%) & 705 & 0.05 \\
+\end{tabular} \quad
+
+\begin{tabular}{|c|l|l|l|l}
+\multicolumn{5}{|c|}{With subsetting} \\
+\rowcolor{gray!50} &&& \multicolumn{2}{|c|}{Classifier f-score} \\
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# Yes (total) & SVM \\
+Translated init & 5000 & 168 (3.4\%) & 168 & 0.39 \\
+Round 1 & 5000 & 272 (5.4\%) & 438 & 0.38 \\
+Round 2 & 5000 & 264 (5.3\%) & 702 & 0.42 \\
+Round 3 & 5000 & 247 (4.9\%) & 949 & 0.40
+\end{tabular} \\
+
+Oh yeah, SVM doesn't give probabilities, so it doesn't really make sense to ask for the 5,000 most likely documents. What if we instead make it so that we use the three SVM classifiers and rank by voting?
+
+\subsection{Many Runs}
+For the purposes of the next section, we're going to need a classifier that works reasonably well. Let's snowball the hell out of this thing. \\
+
+\begin{tabular}{|c|*{6}{l|}}
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# (total) & NB & LR & SVM \\
+Random init & 5000 & 178 (3.6\%) & 178 & 0 & 0.4 & \emph{0.05} \\
+Round 1 & 5000 & 331 (6.6\%) & 365 & 0 & \emph{0.12} & 0.07 \\
+Round 2 & 5000 & 535 (10.7\%) & 621 & 0 & \emph{0.09} & 0.06 \\
+Round 3 & 5000 & 723 (14.5\%) & 915 & 0 & \emph{0.12} & 0.10 \\
+Round 4 & 5000 & 845 (16.9\%) & 1191 & 0 & \emph{0.14}& 0.13\\
+Round 5 & 5000 & 1051 (21.0\%) & 1429 & 0 & \emph{0.14} & 0.11\\
+Round 6 & 5000 & 1258 (25.2\%) & 1692 & 0 & \emph{0.15} & 0.11\\
+Round 7 & 5000 & 1462 (29.2\%) & 1912 & 0.01 & \emph{0.15} & 0.12\\
+Round 8 & 5000 & 1673 (33.5\%) & 2127 & 0.00 & \emph{0.18} & 0.13\\
+Round 9 & 5000 & 1840 (36.8\%) & 2310 & 0.01 & \emph{0.15} & 0.14\\
+Round 10 & 5000 & 1977 (39.5\%) & 2528 & 0.01 & \emph{0.15} & 0.13 \\
+\end{tabular}
+NB never really did so hot, but what if we take that last LR and now do some pruning\\
+\begin{tabular}{|c|*{6}{l}}
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# (total) & NB & LR & SVM \\
+Round 1 & 5000 & 2178 & 2713 & 0.33 & \emph{0.45} & 0.45 \\
+Round 2 & 5000 & 1534 & 2956 & 0.30 & \emph{0.45} & 0.43 \\
+Round 3 & 5000 & 1556 & 3197 & 0.35 & \emph{0.45} & 0.44 \\
+Round 4 & 5000 & 1571 & 3370 & 0.34 & \emph{0.45} & 0.42 \\
+Round 5 & 5000 & 1540 & 3542 & 0.34 & \emph{0.46} & 0.42
+\end{tabular}
+
+
+
+
 \section{Translating a Classifier}
 The reason we used word tokenization for the classifiers on the bootstrapping, and why we wanted Naive Bayes to work well, is that we're going to try to translate a classifier that works on Spanish to one that works on French. To start, we have a heavily bootstrapped (Round 9) that, in Spanish, has 1,542 of its 5,000 (30.8\%) best documents as controversial.
 
@@ -404,6 +459,67 @@ rpgs & paleont\'ologo & odies & uriburu & migratorio \\
 enojar & ajusten & curado & cerebral & militan \\
 apel\'o & machote & permiten & surprised & luca \end{tabular}
 
+In other words, this is trash. We might ask if it's still useful trash though. For how many words does the controversiality of a word agree with its 5 closest neighbors? Well, first off, the words that get marked as controversial more often than not actually tend to be fairly uncommon words. To be sure:
+\\
+\begin{tabular}{c|c|c}
+\rowcolor{gray!50} & All words & Controversial words \\
+\# & 40,483 & 8,369 \\
+Average frequency & 11.04 & 2.56 \\
+\# with at least 100 occurances & 453 & 3 \\
+\# with at least 20 occurances & 2,160 & 103 \\\end{tabular}
+\\
+So this is another problem with using word embeddings, is that the controversial words are ones whose meaning won't be captured very well. Anyway, as for neighbor agreement, with a cutoff of 20 occurances: \\
+\begin{tabular}{c|c|c}
+\rowcolor{gray!50} Neighbors agreeing & Controversial & Non-controversial \\
+0 & 78 & 0 \\
+1 & 25 & 0 \\
+2 & 0 & 4 \\
+3 & 0 & 69 \\
+4 & 0 & 474 \\
+5 & 0 & 1480 \end{tabular}\\
+
+In other words, the controversial words don't pick each other out at all. Do they at least pick out maybe more-controversial words? What if we ask what is the combined controversiality ($y/(y+n)$) of the five nearest neighbors, the five furthest neighbors, and five random words?
+
+\begin{tabular}{c|c|c}
+\rowcolor{gray!50}\%   & Controversial & Non-controversial \\
+Neighbors & 32.1\% &  32.9\%\\
+Anti-neighbors & 32.3\% & 32.9\% \\
+Average & 32.8\% &  32.8\% \end{tabular}\\
+
+In other words: yes, these word embeddings are complete trash. I found pre-trained word embeddings here: http://crscardellino.me/SBWCE/, which apparently are actually good word embeddings. What happens if we run the previous tests?\\
+
+
+\begin{tabular}{c|c|c|c|c}
+\rowcolor{gray!50} nosotros & agua & argentina & hombre & tienda \\
+tenemos & potable & uruguaya & mujer& tiendas \\
+nos & potabiliza & Argentina & muchacho & supermercado \\
+pensamos & tierra & chilena & joven & zapater\'ia\\
+Nosotros & potabilizada & bonaerense & anciano & abarrotes\\
+estamos & semisurgente & argentinas & gavillero & autoservicio \\
+\end{tabular} \\
+
+Alright, that's a good sign. How about controversiality now?\\
+
+\begin{tabular}{c|c|c}
+\rowcolor{gray!50} Neighbors agreeing & Controversial & Non-controversial \\
+0 & 56 & 0 \\
+1 & 21 & 0 \\
+2 & 8 & 14 \\
+3 & 6 & 62 \\
+4 & 0 & 373 \\
+5 & 0 &1552 \end{tabular}\\
+
+\begin{tabular}{c|c|c}
+\rowcolor{gray!50}\%   & Controversial & Non-controversial \\
+Neighbors & 34.3\% &  31.3\%\\
+Anti-neighbors & 31.0\% & 30.0\% \\
+Average & 32.8\% &  32.8\% \end{tabular}\\
+
+So yeah, it looks like having better word embeddings does actually help a little. However, it's still not that distinguishing.
+
+\subsection{Getting more controversial words}
+
+One problem appears to be that we don't have good data on controversial words. To counteract this, let's just train the Naive Bayes on \emph{all} of the data, so that it has controversial counts on every word. 
 
 
 \section{To-Do}
@@ -413,6 +529,8 @@ Here's what's currently left to do:
 \item Produce images of Spanish word embeddings with colors for controversiality (do same for French)
 \item Implement Logistic Regression translation
 \item Implement Topic Model similarity
+\item Get new word embeddings
+\item Look at 2-gram word embeddings
 \end{itemize}
 
 \end{document}

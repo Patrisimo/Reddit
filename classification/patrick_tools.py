@@ -8,6 +8,11 @@ import codecs
 import gzip
 import re
 
+try:
+    xrange
+except NameError:
+    xrange = range
+
 def write_probabilities(data, output_file):
   # Taken from steamroller.tools.io
   writer = codecs.getwriter("utf-8")
