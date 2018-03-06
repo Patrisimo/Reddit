@@ -9,6 +9,14 @@ import json
 import re
 from gensim.models import KeyedVectors
 import numpy as np
+from os import path
+
+class MyEmbed():
+  def __init__(self, embed):
+    self.vocab = embed
+  def __getitem__(self, item):
+    return self.vocab[item]
+
 
 def options():
   parser = ArgumentParser()
@@ -19,12 +27,14 @@ def options():
   parser_ex.add_argument('model', help='Filename of model to extract words from')
   parser_ex.add_argument('k', type=int, help='How many words to extract')
   parser_ex.add_argument('output', help='Name of output files, will receive extension')
+  parser_ex.add_argument('--min', type=int, help='Minimum occurance cutoff for words', default=0)
+  parser_ex.add_argument('--corpus', help='If using cutoff, need corpus to count words')
   
   parser_bnb = subparsers.add_parser('make', help='Create a new parser')
   
   parser_bnb.add_argument('source', help='json from extract_words')
   parser_bnb.add_argument('model', help='previous model')
-  parser_bnb.add_argument('embeddings', help='.kv of word embeddings')
+  parser_bnb.add_argument('embeddings', help='.kv or .pkl of word embeddings')
   parser_bnb.add_argument('translations', help='translated from extract_words')
   parser_bnb.add_argument('corpus', help='corpus of documents')
   parser_bnb.add_argument('output', help='will receive extension')
@@ -58,6 +68,16 @@ def extract_words_nb(ops):
   logging.info('Words saved to %s.txt, json with scores saved to %s.json' % (ops.output, ops.output))
   
       
+def load_embeddings(fname):
+  ext = path.splitext(ops.embeddings)[1]
+  
+  if ext == '.kv':
+    model = KeyedVectors.load(ops.embeddings)
+  elif ext == '.pkl':
+    with open(ops.embeddings, 'rb') as file:
+      model = pickle.load(file, encoding='latin-1')
+  return model
+      
 def make_nb(ops):
   with codecs.open(ops.source, 'r', 'utf-8') as file:
     source = json.load(file)
@@ -70,7 +90,8 @@ def make_nb(ops):
     
   with gzip.open(ops.model) as ifd:
     classifier, dv, label_lookup = pickle.load(ifd)
-  model = KeyedVectors.load(ops.embeddings)
+  
+  model = load_embeddings(ops.embeddings)
       
   target_wdups = []
   for w,r,s in target:
@@ -160,7 +181,22 @@ def extract_words_lrsvm(ops):
     classifier, dv, label_lookup = pickle.load(ifd)
   names = dv.get_feature_names()
   
-  tokens = sorted(enumerate(classifier.coef_[0]), key=lambda x: x[1])
+  if ops.min > 0:
+    if ops.corpus:
+      target_vocab = {}
+      reader = codecs.getreader('utf-8')
+      with reader(gzip.open(ops.corpus)) as file:
+        for line in file:
+          info = line.split('\t',2)
+          for w in re.findall('\w(?:\w|[-\'])*\w', info[2].lower()):
+            target_vocab[w] = 1+target_vocab.get(w,0)
+      allowed = [ dv.vocabulary_[w] for w,c in target_vocab.items() if c > ops.min and w in names ]
+      coefs = classifier.coef_[0,allowed]
+    else:
+      logging.error('--corpus option required if --min set above zero')
+  else:
+    coefs = classifier.coef_[0]
+  tokens = sorted(enumerate(coefs), key=lambda x: x[1])
   
   to_translate = tokens[:ops.k//2]
   to_translate.extend(tokens[-ops.k//2:])
@@ -188,7 +224,7 @@ def make_lrsvm(ops):
     
   with gzip.open(ops.model) as ifd:
     classifier, dv, label_lookup = pickle.load(ifd)
-  model = KeyedVectors.load(ops.embeddings)
+  model = load_embeddings(ops.embeddings)
       
   target_wdups = []
   for w,coef,s in target:

@@ -168,7 +168,7 @@ Here are what I think:
 
 \item Score: (binned) \\
 \emph{Pro:} Should be fairly language independent \\
-\emph{Con:} Borderlines between bins might be difficult, also more extreme scores are very sparse (< 0.2\% have scores of at least 100)
+\emph{Con:} Borderlines between bins might be difficult, also more extreme scores are very sparse ($<$ 0.2\% have scores of at least 100)
 
 \includegraphics[scale=0.5]{spanish_score.png}
 
@@ -383,6 +383,18 @@ Round 5 & 5000 & 1540 & 3542 & 0.34 & \emph{0.46} & 0.42
 \end{tabular}
 
 
+\subsection{Different tokenizer}
+Right now it's word tokenization, but what if we changed it to word 2grams? \\
+
+\begin{tabular}{|c|*{6}{l|}}
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# (total) & NB & LR & SVM \\
+Random init & 5000 & 156  & 156 & 0 & 0.13 & 0.11 \\
+Round 1 & 5000 & 364 & 403 & 0 & 0.07 & 0.04 \\
+Round 2 & 5000 & 570 & 683 & 0.02 & 0.16 & 0.18 \\
+Round 3 & 5000 & 713 & 841 & 0.01 & 0.11 & 0.12 \\
+Round 4 & 5000 & 892 & 1116 & 0.01 & 0.11 & 0.08 \\
+Round 5 & 5000 & 973 & 1338 & 0.01 & 0.12 & 0.13 \\
+\end{tabular}
 
 
 \section{Translating a Classifier}
@@ -520,6 +532,29 @@ So yeah, it looks like having better word embeddings does actually help a little
 \subsection{Getting more controversial words}
 
 One problem appears to be that we don't have good data on controversial words. To counteract this, let's just train the Naive Bayes on \emph{all} of the data, so that it has controversial counts on every word. 
+
+
+\subsection{Translating Logistic Regression}
+
+Logistic regression is just the discriminative version of Naive Bayes, so it should lend itself to this task fairly nicely too. However, that's not the case, as doing this gives \\
+
+\begin{tabular}{|c|*{6}{l|}}
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# (total) & NB & LR & SVM \\
+Translated init & 5000 & 123 (2.5\%) & 123 & 0 &  0.15 & 0.09 \\
+Round 1 & 5000 &  276 (6.1\%) & 304 &  0 & 0.13 & 0.04 \\
+Round 2 & 5000 & 463 (9.3\%)& 530 & 0.02 & 0.10 & 0.07 \\
+Round 3 & 5000 & 600 (12.0\%) & 812 & 0 & 0.14 & 0.10 \\
+\end{tabular} \\
+If we restrict the words to need to occur at least 100 times in order to be considered for translation, we get
+
+\begin{tabular}{|c|*{6}{l|}}
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# (total) & NB & LR & SVM \\
+Translated init & 5000 & 224 (4.5\%) & 224 & 0 & 0.14 & 0.10 \\
+Round 1 & 5000 &  461 (9.2\%) & 504 & 0.02 & 0.10 & 0.08 \\
+Round 2 & 5000 &  652 (13.0\%) & 785 & 0.01 & 0.11 & 0.11 \\
+Round 3 & 5000 &  819 (16.4\%) & 1044 & 0 & 0.16 & 0.10 \\
+\end{tabular} \\
+Hey, now that's not too bad. As a reminder, with a random initialization, we start with about 3.2\% controversial and end with about 14\%, so we've improved over the baseline by about 10\%. 
 
 
 \section{To-Do}
