@@ -18,7 +18,7 @@ class MyCorpus(object):
 def main():
 	ops = options()
 	corpus = MyCorpus(ops.filename)
-	lda = gensim.models.LdaModel(corpus, num_topics=ops.topics)
+	lda = gensim.models.LdaModel(corpus, num_topics=ops.topics, per_word_topics=True)
 	lda.save(ops.output)
 	corpus.dictionary.save('%s.dk' % ops.output)
 	

@@ -1,0 +1,304 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This file is a template using the "beamer" package to create slides for a talk or presentation
+% - Giving a talk on some subject.
+% - The talk is between 15min and 45min long.
+% - Style is ornate.
+
+% MODIFIED by Jonathan Kew, 2008-07-06
+% The header comments and encoding in this file were modified for inclusion with TeXworks.
+% The content is otherwise unchanged from the original distributed with the beamer package.
+
+\documentclass{beamer}
+\usepackage{colortbl}
+
+% Copyright 2004 by Till Tantau <tantau@users.sourceforge.net>.
+%
+% In principle, this file can be redistributed and/or modified under
+% the terms of the GNU Public License, version 2.
+%
+% However, this file is supposed to be a template to be modified
+% for your own needs. For this reason, if you use this file as a
+% template and not specifically distribute it as part of a another
+% package/program, I grant the extra permission to freely copy and
+% modify this file as you see fit and even to delete this copyright
+% notice. 
+
+
+\mode<presentation>
+{
+  \usetheme{Warsaw}
+  % or ...
+
+  \setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+\usepackage[english]{babel}
+% or whatever
+
+\usepackage[utf8]{inputenc}
+% or whatever
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+
+
+
+\title % (optional, use only with long paper titles)
+{Research Presentation}
+
+\subtitle
+{Translating Naive Bayes} % (optional)
+
+\author % (optional, use only with lots of authors)
+{Patrick Martin}
+% - Use the \inst{?} command only if the authors have different
+%   affiliation.
+
+\subject{Talks}
+% This is only inserted into the PDF information catalog. Can be left
+% out. 
+
+
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+% \pgfdeclareimage[height=0.5cm]{university-logo}{university-logo-filename}
+% \logo{\pgfuseimage{university-logo}}
+
+
+
+% Delete this, if you do not want the table of contents to pop up at
+% the beginning of each subsection:
+\AtBeginSubsection[]
+{
+  \begin{frame}<beamer>{Outline}
+    \tableofcontents[currentsection,currentsubsection]
+  \end{frame}
+}
+
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command: 
+
+%\beamerdefaultoverlayspecification{<+->}
+
+
+\begin{document}
+
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+% Since this a solution template for a generic talk, very little can
+% be said about how it should be structured. However, the talk length
+% of between 15min and 45min and the theme suggest that you stick to
+% the following rules:  
+
+% - Exactly two or three sections (other than the summary).
+% - At *most* three subsections per section.
+% - Talk about 30s to 2min per frame. So there should be between about
+%   15 and 30 frames, all told.
+
+\begin{frame}{Motivation 1}
+  % - A title should summarize the slide in an understandable fashion
+  %   for anyone how does not follow everything on the slide itself.
+
+  \begin{itemize}
+  \item Imagine we've got a lot of documents, only some of which are interesting
+  \item But we don't know which ones!
+  \item We can have a human look at them, but there are really too many documents to look at all of them
+  \item Can we learn what documents are interesting under these constraints?
+
+\uncover<2->{\item Current answer: kinda}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The Data}
+\begin{itemize}
+\item Reddit comments from January - March 2017 from French- and Spanish-speaking subreddits
+\item Our metric of ``interesting'' will be ``controversiality''
+\end{itemize}
+%\rowcolors{2}{gray!25}{white}
+\begin{center}
+\begin{tabular}{c|c|c}
+& Spanish & French \\\hline
+\# Comments & 163,057 & 207,348 \\
+\# Controversial & 5,243 & 9,449 \end{tabular}\end{center}
+\end{frame}
+
+\begin{frame}{Bootstrapping}
+\begin{enumerate}
+\item Pick 5,000 comments at random, determine which are controversial 
+\item Train classifiers on those comments, Naive Bayes (NB) and Logistic Regression (LR)
+\item Take the classifier that does the best, and run it over all the documents
+\item Pick the 5,000 documents deemed by the classifier to be most controversial, excluding any previously seen ones
+\item Repeat
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Results - Spanish}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{F-score} \\
+\rowcolor{gray!50} & \# Docs & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Init & 5000 & 172 (3.4\%)& 172 & 0 & \textbf{0.087} \\
+Round 1 & 5000 & 399 (8.0\%) & 437 (+265)& 0 & \textbf{0.077} \\
+Round 2 & 5000 & 574 (11.5\%) & 683 (+246) & 0 & \textbf{0.16} \\
+Round 3 & 5000 & 710 (14.2\%) & 928 (+245) & 0 & \textbf{0.097} \\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Results - French}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{F-score} \\
+\rowcolor{gray!50} & \# Docs & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Init & 5000 & 216 (4.3\%) & 216 & 0 & \textbf{0.10} \\
+Round 1 & 5000 &  571 (11.4\%) & 621 (+405)& 0.017 & \textbf{0.12} \\
+Round 2 & 5000 & 883 (17.7\%) & 1034 (+413)& 0 & \textbf{0.17} \\
+Round 3 & 5000 & 1124 (22.5\%) & 1432 (+398) & 0.007 & \textbf{0.16} \\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Naive Bayes}
+\begin{itemize}
+\item The signal is too sparse for Naive Bayes to positively identify anything
+\item If we restrict the training data to be 33\% controversial messages, will that help?
+\item Turns out, yes
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Results - Spanish}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{F-score} \\
+\rowcolor{gray!50} & \#  Docs & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Init & 5000 & 173 (3.5\%) & 173 & \emph{0.16} & 0.30 \\
+R1 & 5000 & 381 (7.6\%) & 429 (+256) & \emph{0.36} & 0.43 \\
+R2 & 5000 & 553 (11.1\%) & 702 (+273) & \emph{0.31} & 0.40 \\
+R3 & 5000 & 724 (14.5\%) & 1000 (+298) & \emph{0.38}  & 0.47
+\end{tabular}\end{center}
+\end{frame}
+
+
+\begin{frame}{Results - French}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{F-score} \\
+\rowcolor{gray!50} & \#  Docs & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Init & 5000 & 243 (4.9\%) & 243 & \emph{0.42} & 0.49 \\
+R1 & 5000 & 533 (10.7\%) & 637 (+394)& \emph{0.35} & 0.44 \\
+R2 & 5000 & 828 (16.6\%) & 1095 (+458)& \emph{0.36} & 0.44 \\
+R3 & 5000 & 1041 (20.8\%) & 1523 (+428)& \emph{0.38} & 0.44 \\
+\end{tabular}\end{center}
+\end{frame}
+
+\begin{frame}{Conclusion 1}
+\begin{itemize}
+\item Restricting the training data does help Naive Bayes get on the scoreboard, but Logistic Regression still wins out
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Motivation 2}
+\begin{itemize}
+\item Now imagine we've got a fairly good classifier on the Spanish comments, but we don't have anything for the French
+\item Can we somehow translate our Spanish classifier to French?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Plan}
+\begin{itemize}
+\item Assume our good classifier is Naive Bayes with word tokenization \\
+Ours will be about 30\% accurate
+\item Take 500 words that strongly indicate either `yes' or `no' to controversiality in this classifier \\
+250 from each side
+\item Translate those words to French \\
+Google Translate for now...
+\item Build a new classifier from these words $<$--- This is the hard part
+\item Evaluate the quality
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Most Controversial Words}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\rowcolor{gray!50}Spanish & English & French \\\hline
+allende & Allende & allende \\
+retorno & return & revenir \\
+pib & ? & pib \\
+ingrediente & ingredient & ingrédient \\
+imbecil & imbecile & imbécile \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+03 & 03 & 03 \\
+data & data & données \\
+vayas & go & aller \\
+súper & super & super \\
+sorry & sorry & désolé \\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Building a Classifier}
+\begin{itemize}
+\item Naive Bayes needs to know $p(word| class)$ for each word. 
+\item For the words we translated, this is pretty easy \\
+Just average the probabilities if the same word shows up multiple times
+\item But we can't make a classifier with only 500 words
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Inferring Probabilities}
+\begin{itemize}
+\item As mentioned before, this is the potentially interesting part
+\item First attempt will be to get word similarities from Word2Vec on all the French comments, and
+\[ p(class|word) \propto \sum_{w\in N_k(word)} p(class|w) sim(word,w) \]
+where $N_k(word)$ represents the $k$-nearest ``anchor'' words
+\item For now, $k=5$
+\item Use this to estimate probabilities for all words that occur at least 100 times (8,554)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Result - Translated Model}
+\begin{center}
+\begin{tabular}{|c|l|l|l|l|l|}
+\rowcolor{gray!50} &&&& \multicolumn{2}{|c|}{F-score} \\
+\rowcolor{gray!50} & \# Docs & \# Yes (repeats) & \# Yes (total) & NB & LR \\
+Init & 5000 & 213 (4.3\%) & 213 & 0 & \textbf{0.05} \\
+R1 & 5000 &  537 (10.7\%) & 599 (+386)& 0.03 & \textbf{0.09} \\
+R2 & 5000 &  803 (16.1\%) & 979 (+380)& 0 & \textbf{0.14} \\
+R3 & 5000 & 1069 (21.4\%) & 1383 (+404)& 0.008 & \textbf{0.17} \\
+\end{tabular}\end{center}
+\end{frame}
+
+\begin{frame}{Initial Conclusions and Next Steps}
+\begin{itemize}
+\item It doesn't \emph{not} work
+\item Could improve translations:
+\begin{itemize}
+\item Including the unaccented form of words when translating
+\item Preserving English and other foreign words
+\end{itemize}
+\item Could improve inference
+\begin{itemize}
+\item Different corpus for Word2Vec?
+\item Different formula for inference
+\end{itemize}
+\item Could translate other models
+\end{itemize}
+\end{frame}
+
+\end{document}
+
+
