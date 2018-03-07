@@ -191,12 +191,12 @@ def extract_words_lrsvm(ops):
           for w in re.findall('\w(?:\w|[-\'])*\w', info[2].lower()):
             target_vocab[w] = 1+target_vocab.get(w,0)
       allowed = [ dv.vocabulary_[w] for w,c in target_vocab.items() if c > ops.min and w in names ]
-      coefs = classifier.coef_[0,allowed]
+      coefs = [ (i, classifier.coef_[0,i]) for i in allowed]
     else:
       logging.error('--corpus option required if --min set above zero')
   else:
-    coefs = classifier.coef_[0]
-  tokens = sorted(enumerate(coefs), key=lambda x: x[1])
+    coefs = enumerate(classifier.coef_[0])
+  tokens = sorted(coefs, key=lambda x: x[1])
   
   to_translate = tokens[:ops.k//2]
   to_translate.extend(tokens[-ops.k//2:])
