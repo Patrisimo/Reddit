@@ -109,10 +109,12 @@ def train_classifier(ops):
 def area(data):
   data = sorted(data, key=lambda x: x[0])
   area = 0
-  for i in range(1,len(data)):
-    x0, y0 = data[i-1]
+  x0, y0 = 0, 0
+  for i in range(len(data)):
     x1, y1 = data[i]
     area += (y1+y0) * (x1-x0) / 2.
+    x0, y0 = x1, y1
+  area += (1+y1) * (1-x1) / 2.
     
   return area
 

@@ -30,24 +30,6 @@ do
 	fi
 	read -p "How many documents? " docs
 
-	python doitall.py train_classifier $fname $docs naive_bayes $tokenizer ${basename}_nb1 --max_ngram $7
-	echo "^ nb1"
-	python doitall.py train_classifier $fname $docs naive_bayes $tokenizer ${basename}_nb2 --max_ngram $7
-	echo "^ nb2"
-	python doitall.py train_classifier $fname $docs naive_bayes $tokenizer ${basename}_nb3 --max_ngram $7
-	echo "^ nb3"
-
-	python doitall.py train_classifier $fname $docs logistic_regression $tokenizer ${basename}_lr1 --max_ngram $7
-	echo "^ lr1"
-	python doitall.py train_classifier $fname $docs logistic_regression $tokenizer ${basename}_lr2 --max_ngram $7
-	echo "^ lr2"
-	python doitall.py train_classifier $fname $docs logistic_regression $tokenizer ${basename}_lr3 --max_ngram $7
-	echo "^ lr3"
+	python compare.py $fname $docs $basename
 	
-	python doitall.py train_classifier $fname $docs svm $tokenizer ${basename}_svm1 --max_ngram $7
-	echo "^ svm1"
-	python doitall.py train_classifier $fname $docs svm $tokenizer ${basename}_svm2 --max_ngram $7
-	echo "^ svm2"
-	python doitall.py train_classifier $fname $docs svm $tokenizer ${basename}_svm3 --max_ngram $7
-	echo "^ svm3"
 done

@@ -7,6 +7,7 @@ import pickle
 import codecs
 import logging
 from itertools import chain
+import numpy as np
 #from steamroller.tools.io import read_data, write_probabilities, writer, reader, extract_character_ngrams
 #from steamroller.tools.io import read_data, write_probabilities, writer, reader
 
@@ -84,8 +85,11 @@ def test_batch(instances, gold, dv, label_lookup, classifier, data):
           data[cid] = (g, {k : v for k, v in zip(order, probs.flatten())})
   elif hasattr(classifier, "decision_function"):
     for probs, (cid, g) in zip(classifier.decision_function(X), gold):
-      if len(p) == 0:
-        probs = np.array([ np.log(1-np.exp(p[0])), p])
+      if not hasattr(probs, '__len__'):
+        p = 1. / (np.exp(probs) + 1)
+        probs = np.array([ np.log(p), np.log(1-p)])
+      else:
+        logging.info('Multiple class SVM has not been tested!')
       data[cid] = (g, {k : v for k, v in zip(order, probs.flatten())})  
   else:
       for pred, (cid, g) in zip(classifier.predict(X), gold):
