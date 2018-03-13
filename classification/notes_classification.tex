@@ -556,6 +556,113 @@ Round 3 & 5000 &  819 (16.4\%) & 1044 & 0 & 0.16 & 0.10 \\
 \end{tabular} \\
 Hey, now that's not too bad. As a reminder, with a random initialization, we start with about 3.2\% controversial and end with about 14\%, so we've improved over the baseline by about 10\%. 
 
+\subsection{Evaluating the Embeddings}
+It is a little difficult to tell how well the embeddings capture the controversiality judgements when we don't really know how accurate the judgements for each of the words is. However, we can determine how well the embeddings + the classifier is by looking at a couple datapoints. The main important point is that the three classifiers we are looking at: naive Bayes, logistic regression, and SVM, are all linear classifiers, and so can be interpreted as linear models (logistic regression \emph{is} a linear model). In other words, the classifier assigns each word $w$ a coefficient $\theta_w$ so that the classifier judgement on a collection of words $W = (w_i)$ is
+\[ l(W) = \sum_{w_i \in W} \theta_{w_i} \]
+which is converted to a binary classification by comparing it to a threshold value. In this case, the $\theta_w$ that are largest in absolute value are the ``most important'' coefficients, and so we should pay attention to the corresponding words. These ``important words'' will be called ``anchor words''. \\
+\\
+We can use the embeddings to look at the words that are close to each anchor, and hope that the corresponding coefficients are similar. We would like to be able to infer coefficients for all words, given the coefficients for the anchors. Thus we have four variables:
+\begin{enumerate}
+\item The Embeddings
+\item The Classifier
+\item The Metric
+\item The Inference algorithm
+\end{enumerate}
+
+We then can evaluate any such setup by answering the following questions:
+
+\begin{enumerate}
+\item How well do anchor coefficients correlate with the coefficients of their neighbors?
+
+\item How well do coefficients correlate with the coefficients of the nearest anchors?
+
+\item How well do anchor coefficients represent the coefficients of their neighbors?
+
+\item How diverse are the neighborhoods around the anchor words?
+\end{enumerate}
+
+We're first going to look at one setup of the non-classifier variables: the Spanish Gigaword Embeddings, Cosine metric, and weighted average.
+
+\subsubsection{Logistic Regression}
+Words are filtered to only those that occur at least 100 times (6,069 many), anchors are those with scores at least 1 in absolute value (414 many), and neighbors are of size 10. 
+
+\begin{enumerate}
+\item How well do anchor coefficients correlate with the coefficients of their neighbors?
+
+\[ \hat{\theta}_a = 0.019 \theta_a - 0.059 \]
+\[ r = 0.120 \quad p = 0.014 \quad err = 0.0076 \]
+
+
+\item How well do coefficients correlate with the coefficients of the nearest anchors?
+
+\[ \hat{\theta}_w = -0.001 \theta_w - 0.081 \]
+\[ r = -0.0041 \quad p = 0.749 \quad err = 0.0035 \]
+
+
+\item How often is the correct sign of label inferred?
+
+\begin{center}
+\begin{tabular}{r|c|c|c}
+& Pos & Neg & Total \\
+Pos & 743 & 1620 & 2363 \\
+Neg & 1067 & 2634 & 3701 \\
+Total & 1810 & 4254 & 6064 
+\end{tabular}
+\end{center}
+
+\item How diverse are the neighborhoods around the anchor words?
+\begin{center}
+\begin{tabular}{r|c|c|c}
+& Pos & Neg & Total \\
+Pos & 1051 & 1369 & 2420 \\
+Neg & 713 & 1007 & 1720 \\
+Total & 1764 & 2376 & 4140 
+\end{tabular}
+\end{center}
+\end{enumerate}
+
+
+\subsubsection{SVM}
+Words are filtered to only those that occur at least 100 times (6,069 many), anchors are the 250 most important on either side (500 many), and neighbors are of size 10. 
+
+\begin{enumerate}
+\item How well do anchor coefficients correlate with the coefficients of their neighbors?
+
+\[ \hat{\theta}_a = 0.007 \theta_a - 0.037 \]
+\[ r = 0.052 \quad p = 0.250 \quad err = 0.0065 \]
+
+
+\item How well do coefficients correlate with the coefficients of the nearest anchors?
+
+\[ \hat{\theta}_w = -0.007 \theta_w - 0.034 \]
+\[ r = -0.03 \quad p = 0.018 \quad err = 0.0029 \]
+
+
+\item How often is the correct sign of label inferred?
+
+\begin{center}
+\begin{tabular}{r|c|c|c}
+& Pos & Neg & Total \\
+Pos & 533 & 1804 & 2337 \\
+Neg & 954 & 2773 & 3729 \\
+Total & 1487 & 4577 & 6064 
+\end{tabular}
+\end{center}
+
+\item How diverse are the neighborhoods around the anchor words?
+\begin{center}
+\begin{tabular}{r|c|c|c}
+& Pos & Neg & Total \\
+Pos & 1038 & 1462 & 2500 \\
+Neg & 1044 & 1456 & 2500 \\
+Total & 2082 & 2918 & 5000 
+\end{tabular}
+\end{center}
+
+
+
+\end{enumerate}
+
 
 \section{To-Do}
 Here's what's currently left to do:
