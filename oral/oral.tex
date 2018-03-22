@@ -50,8 +50,17 @@
 \renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
 
 %%% END Article customizations
+\usepackage{amsthm,amsfonts, amsmath, mathtools, amssymb}
 
 
+\renewcommand{\Pr}[1]{\mathcal{P} \left( #1 \right)}
+\newcommand{\cls}{\mathcal{C}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+\newcommand{\pa}[1]{\left( #1 \right)}
+\newcommand{\I}{\mathcal{I}}
 
 \usepackage[table]{xcolor}
 \usepackage{geometry}
@@ -70,30 +79,61 @@
 \section{Overview}
 The skeleton of this talk should be the following
 \begin{enumerate}
-\item Introduction to classification, types of algorithms
+\item Introduction to Learning Theory
 \begin{enumerate}
-	\item Rule-based
-	\item Generative
-	\item Discriminative
-	\item Unsupervised
+	\item Uniform convergence
+	\item VC dimension, fingering
+	\item Sample complexity
 \end{enumerate}
-\item Theoretical results
+\item Linear classifiers
 \begin{enumerate}
-	\item Not really possible in a broad sense
-	\item Maybe possible for generative models
+	\item More specialized results
+	\item Generative versus discriminative
 \end{enumerate}
-
+\end{enumerate}
 \section{Introduction}
 
 The general problem of classification algorithms is that we have data that falls into various classes, and we would like to automatically sort them into their respective classes. For example
 \begin{itemize}
 \item Identifying junk mail
 \item Dialect detection
+\item Illness diagnosis
 \item others
 \end{itemize}
-We may want to do this automatically for various reasons, but we're going to assume that one reason is that there is far too much data to sort by hand, meaning we have practically unlimited unlabelled data. Classification algorithms do require some amount of labelled data (to actually be able to define the classes), but we're going to try to use as little as possible. Now, there are various types of classification algorithms, distinguished by how they make their classification judgements: Rule-based, Generative, Discriminative, and Unsupervised. 
+Abstractly, there are two ways of thinking of this regime: as datapoints $x$ that are being generated and then post-facto being assigned classes $i=0,\ldots,n-1$ according to some probability $\Pr{i|x}$ (which may be deterministic), or as a mixture of generators corresponding to the different classes, where a datapoint is born with a class label already. The second idea jives much better with how we think of many classification problems: for example, it is whether someone is sick or not that is producing the symptoms, not that someone has symptoms and then their wellbeing is decided. However, we can easily transition between the two paradigms via Bayes' Rule:
+\[ \Pr{i|x} \propto  \Pr{i} \Pr{x|i} \]
+The left hand side represents the post-facto assignments, while the right-hand side shows the mixture system. Thus, although the mixture system may be more intuitive, we are going to care more about $\Pr{i|x}$. 
 
-\subsection{Rule-Based}
+A classifier is be a \emph{function} $g: \R^d \to \{0,\ldots,n-1\}$, and our data is elements  $(X,Y) \in \R^d \times \{0,\ldots,n-1\}$: datapoints in $\R^d$ with their labels. A classifier makes an \emph{error} if $g(X) \ne Y$, and the \emph{probability of error} is
+\[ L(g) = \Pr\{g(X) \ne Y\} \]
+Now, considering the space of classifiers, there is a \emph{best} classifier\footnote{are we sure this exists?},
+\[ g^* = \arg\min_{g} \Pr\{g(X) \ne Y\} \]
+which we would like to find, or at least approximate. This $g^*$ is called the \emph{Bayes classifier}, and its probability of error is the \emph{Bayes error} $L^* \defeq L(g^*)$. However, as written, nearly everything is either unknown or untractable:
+\begin{itemize}
+\item The space of functions $\R^d \to \{0,\ldots,n-1\}$ is much too large to say anything about
+\item The distribution $\Pr{(X,Y)}$ is typically unknown, and so $L$ is not computable
+\end{itemize}
+To this end, we will restrict ourselves to discussing a certain \emph{class} of classifiers, and to use training data to \emph{learn} the distribution. We then can ask:
+\begin{itemize}
+\item How well does the best classifier in our class do?
+\item How well can we approximate the best classifier?
+\item How much training data do we need to do this approximation?
+\end{itemize}
+
+\section{Classes of Classifiers}
+
+The answers to these questions will rely significantly on the class $\mathcal{C}$, of course. First, we introduce the \emph{Empirical Error Probability} for a classifier $\phi$\footnote{why did we switch notation?}, given $n$ training data $(X_1,Y_1),\ldots,(X_n, Y_n)$:
+\[ \hat{L}_n(\phi) = \frac1n \sum_{i=1}^n \I_{\phi(X_i) \ne Y_i} \]
+where $I_f$ is the indicator function, taking the value 1 if $f$ is true and $0$ if $f$ is false. Our hope is that $\hat{L}_n$ approximates the true error $L$ fairly well, and so by finding a classifier $\phi^*_n$ that minimizes $\hat{L}_n$, we have a classifier that approaches the Bayes error $L^*$. However, we have two obstacles to this approach:
+\[ L(\phi_n^*) - L^* = \underbrace{\pa{ L(\phi_n^*) - \inf_{\phi \in \cls} L(\phi)}}_{\text{estimation error}} + \underbrace{\pa{ \inf_{\phi \in \cls} L(\phi) - L^*}}_{\text{approximation error}} \]
+
+The approximation error represents how useful our selection of $\cls$ was, and is not something we can help, except by choosing a different class of classifiers. Thus our attention focuses on being able to bound the estimation error, or how much worse our selected classifier is than the best in the class. Additionally, at times we may assume that $\min_{\phi \in \cls} L(\phi) = 0$, which results in 
+
+\subsection{Finite hypothesis class}
+
+If $\abs{ \cls} < \infty$, then first, the approximation error will probably be huge. However, we can do 
+
+
 
 
 
