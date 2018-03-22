@@ -1,0 +1,450 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This file is a template using the "beamer" package to create slides for a talk or presentation
+% - Giving a talk on some subject.
+% - The talk is between 15min and 45min long.
+% - Style is ornate.
+
+% MODIFIED by Jonathan Kew, 2008-07-06
+% The header comments and encoding in this file were modified for inclusion with TeXworks.
+% The content is otherwise unchanged from the original distributed with the beamer package.
+
+\documentclass{beamer}
+
+
+% Copyright 2004 by Till Tantau <tantau@users.sourceforge.net>.
+%
+% In principle, this file can be redistributed and/or modified under
+% the terms of the GNU Public License, version 2.
+%
+% However, this file is supposed to be a template to be modified
+% for your own needs. For this reason, if you use this file as a
+% template and not specifically distribute it as part of a another
+% package/program, I grant the extra permission to freely copy and
+% modify this file as you see fit and even to delete this copyright
+% notice. 
+
+
+\mode<presentation>
+{
+  \usetheme{Warsaw}
+  % or ...
+
+  \setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+
+\usepackage[english]{babel}
+% or whatever
+
+\usepackage[utf8]{inputenc}
+% or whatever
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+\usepackage{mathtools}
+
+\title % (optional, use only with long paper titles)
+{Learning Theory for Classification}
+
+\author % (optional, use only with lots of authors)
+{Patrick Martin}
+% - Use the \inst{?} command only if the authors have different
+%   affiliation.
+
+\institute % (optional, but mostly needed)
+{Department of Mathematics\\
+Johns Hopkins University}
+% - Use the \inst command only if there are several affiliations.
+% - Keep it simple, no one is interested in your street address.
+
+\date % (optional)
+{Oral Exam - April 3, 2018}
+
+\subject{Oral Exam}
+% This is only inserted into the PDF information catalog. Can be left
+% out. 
+
+
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+% \pgfdeclareimage[height=0.5cm]{university-logo}{university-logo-filename}
+% \logo{\pgfuseimage{university-logo}}
+
+
+
+% Delete this, if you do not want the table of contents to pop up at
+% the beginning of each subsection:
+%\AtBeginSubsection[]
+%{
+%  \begin{frame}<beamer>{Outline}
+%    \tableofcontents[currentsection,currentsubsection]
+%  \end{frame}
+%}
+
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command: 
+
+%\beamerdefaultoverlayspecification{<+->}
+
+\renewcommand{\Pr}[1]{\mathcal{P} \left( #1 \right)}
+\newcommand{\cls}{\mathcal{C}}
+\newcommand{\E}[1]{\mathbb{E}\left( #1 \right)}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\defeq}{\vcentcolon=}
+\newcommand{\eqdef}{=\vcentcolon}
+\newcommand{\pa}[1]{\left( #1 \right)}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\br}[1]{\left\{ #1 \right\} }
+\newcommand{\eps}{\varepsilon}
+\newcommand{\an}[1]{\langle #1 \rangle}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+  % You might wish to add the option [pausesections]
+\end{frame}
+
+
+% Since this a solution template for a generic talk, very little can
+% be said about how it should be structured. However, the talk length
+% of between 15min and 45min and the theme suggest that you stick to
+% the following rules:  
+
+% - Exactly two or three sections (other than the summary).
+% - At *most* three subsections per section.
+% - Talk about 30s to 2min per frame. So there should be between about
+%   15 and 30 frames, all told.
+
+\section{Introduction}
+\begin{frame}{What is Classification?}
+\begin{itemize}
+\item Given some \textcolor{blue}{symptoms}, what \textcolor{red}{illness} does a patient have?
+\item Given an \textcolor{blue}{English document}, what \textcolor{red}{dialect} is it written in? 
+\item Given an \textcolor{blue}{email}, is it \textcolor{red}{spam}?
+\item Given some \textcolor{blue}{observables}, what \textcolor{red}{class} produced it?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Giving some names}
+\begin{itemize}
+\item Our \textcolor{blue}{observables} will be feature vectors $x \in \R^d$
+\item Our \textcolor{red}{classes} will be numbers $i=0,\ldots,k-1$
+\item Thus our data is ordered pairs $(X,Y) \in \R^d \times \{0,\ldots,k-1\}$
+\item A classifier is then a \emph{function}
+\[ g: \R^d \to \{0,\ldots, k-1\} \]
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Data Generation - Part 1}
+\begin{itemize}
+\item Our first paradigm of how the data is generated might be the following
+\begin{block}{Mixture model}
+Each class $i$ represents a probability distribution over $\R^d$, and so data is generated by first choosing a class, and then generating a vector $x$ based on that class's distribution $\Pr{x|i}$.\\
+\end{block}
+\item Given a vector $x$, the probability that it belongs to a certain class is then given by Bayes' Rule:
+\[ \Pr{i|x} \propto \Pr{x|i} \Pr{i} \]
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Data Generation - Part 2}
+\begin{itemize}
+\item However, we really only care about the $\Pr{i|x}$, and so we can instead describe our data differently
+\begin{block}{Generative model}
+Data is generated by choosing vectors $x$, and then assigning a class $i$ according to $\Pr{i|x}$. 
+\end{block}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation}
+\begin{itemize}
+\item A classifier $g$ makes an \emph{error} for $(X,Y)$ if $g(X) \ne Y$
+\item We can then talk about the \emph{probability of error} $L$, in terms of the probability distribution $\nu$:
+\[ L(g) \defeq \Pr{g(X) \ne Y} = \nu\pa{ \br{ (X,Y) : \phi(X) \ne Y}}  \]
+\item The best classifier is the one that minimizes the probability of error
+\[ g^* = \arg \min_g L(g) \]
+\item This $g^*$ is called the \emph{Bayes classifier}, and $L^* \defeq L(g^*)$ is the \emph{Bayes error}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Ready to go?}
+\begin{itemize}
+\item Unfortunately we can't really find $g^*$ exactly, because
+\item The space of functions $g: \R^d \to \{0,\ldots,k-1\}$ is too large and unstructured to search
+\item We generally don't know $\Pr{x|i}$, and can't actually compute $L(g)$
+\\
+\item Instead, we will restrict our search to a subset of classifiers $\cls$
+\item We will use training data to estimate the distributions
+\item For simplicity, we will also restrict ourselves to binary classification ($k=1$)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Questions}
+\begin{itemize}
+\item How well does the best classifier in our class do?
+\item How well can we approximate the best classifier?
+\item How much training data do we need to do this approximation?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Estimations and Approximations}
+\begin{itemize}
+\item Introduce the \emph{empirical} error probability for a classifier
+\[ \hat{L}_n(g) \defeq \frac1n \sum_{i=1}^n \I_{g(X_i) \ne Y_i} = \nu_n\pa{\br{(X,Y) : \phi(X) \ne Y}}\]
+\item If we restrict our search to $\phi \in \cls$, then we can choose $\phi_n^*$ to minimize $\hat{L}_n$
+\item How close to the Bayes error can we get?
+\[ L(\phi_n^*) - L^* = \underbrace{\pa{ L(\phi_n^*) - \inf_{\phi \in \cls} L(\phi)}}_{\text{estimation error}} + \underbrace{\pa{ \inf_{\phi \in \cls} L(\phi) - L^*}}_{\text{approximation error}} \]
+\item We can try to control the estimation error, but the approximation error belongs to $\cls$
+\end{itemize}
+\end{frame}
+
+\section{Bounding the Estimation Error}
+\subsection{Finite $\cls$}
+\begin{frame}{Finite $\cls$}
+\begin{block}{Lucky guess}
+If $\abs{\cls} < \infty$ and $\min_{\phi \in \cls} L(\phi) = 0$, then for every $n$ and $\eps > 0$,
+\[ \Pr{L(\phi^*_n) > \eps} \leq \abs{\cls} e^{-n\eps}\]
+and
+\[ \E{L(\phi^*_n)} \leq \frac{1 + \log\abs{\cls}}n \]
+\end{block}
+\begin{itemize}
+\item However, this only holds if a ``perfect'' classifier is in our $\cls$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Finite $\cls$ - General case}
+\begin{itemize}
+\item Turning our attention from $L$ to $\nu$, a classifier represents a subset of $\R^d \times \{0,1\}$ 
+\[ \phi \to A \defeq \br{ (X,Y) : \phi(X) \ne Y}\]
+\begin{block}{Unlucky guess}
+If a class of sets $\mathcal{A}$ has finite cardinality, then
+\[ \Pr{ \sup_{A\in \mathcal{A}} \abs{\nu_n(A) - \nu(A)} > \eps} \leq 2\abs{\mathcal{A}} e^{-2n\eps^2} \]
+\end{block}
+\item Notice that having a ``perfect'' classifier in $\cls$ improves our bound!
+\end{itemize}
+\end{frame}
+
+\subsection{Fingering}
+\begin{frame}{Effectively finite $\cls$}
+\begin{itemize}
+\item While $\cls$ will usually be infinite, it may be that there is a number $k$ (the \emph{fingering dimension}) and a function $\Psi: (\R^d)^k \to \cls$ such that for any $x_1,\ldots,x_n$ the behavior of any $\phi \in \cls$ can be replicated almost surely, with at most $k$ mistakes, that is
+\[ \Psi(x_{i_1}, \ldots, x_{i_k})(x_j) = \phi(x_j) \quad \forall j \not\in \{i_1,\ldots,i_k\} \]
+\item Fingering dimension of various types of classifiers
+\begin{itemize}
+\item Linear classifiers: $d$
+\item Hyperrectangular classifiers: $2d$
+\item Spherical classifiers: $d+1$
+\end{itemize}
+\item In this case, for any training data we only have to look at finitely many classifiers, at most $\frac{n!}{(n-k)!}$ many.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bounds}
+\begin{block}{Bound on classifier selected by fingering}
+If $\cls$ has fingering dimension $k$ and $\hat\phi$ is found by fingering, then for $n \geq k$ and $\frac{2k}n \leq \eps \leq 1$
+\[ \Pr{ L(\hat\phi) - \inf_{\phi \in \cls} L(\phi) > \eps} \leq e^{2k\eps}(n^k + 1)e^{-n\eps^2/2} \]
+and
+\[ \E{ L(\hat\phi) - \inf_{\phi \in \cls} L(\phi)} \leq \sqrt{\frac{(2k+1)\log n + (2k+2)}n}\]
+\end{block}
+\end{frame}
+
+\subsection{VC Dimension}
+\begin{frame}{Shattering Coefficient}
+\begin{itemize}
+\item Another way of assigning a number to a class $\cls$ is by looking at the shatter coefficient and the VC dimension
+\item Recall that a class of classifiers $\cls$ induces a class of sets $\mathcal A$
+\begin{block}{Shatter Coefficient}
+The $n$-th \emph{shatter coefficient} of a class of sets $\mathcal{A}$ is
+\[ S(\cls, n) = s(\mathcal A, n) \defeq \max_{(z_1,\ldots,z_n)\in (\R^d)^n} \abs{ \br{ \br{z_1, \ldots, z_n} \cap A_{0,1} : A \in \mathcal A}} \]
+Where $A_i \defeq \{x \in \R^d : (x,i) \in A\}$.
+\end{block}
+\item Immediately we see that $s(\mathcal A, n) \leq 2^n$
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Bounds}
+\begin{block}{Bound using Shatter Coefficient}
+\[ \Pr{ \sup_{\phi \in \cls} \abs{ \hat{L}_n (\phi) - L(\phi)} > \eps } \leq 8 S(\cls, n) e^{-n\eps^2/32} \]
+Letting $\phi_n^*$ be a classifier minimizing $\hat{L}_n(\phi)$ over $\cls$,
+\[ \Pr{ L(\phi^*_n) - \inf_{\phi \in \cls} (\phi) > \eps } \leq 8 S(\cls,n)e^{-2\eps^2/128} \]
+Also
+\[ \E{L(\phi^*_n)} - \inf_{\phi\in\cls} L(\phi) \leq 16 \sqrt{\frac{\log(8eS(\cls, n))}{2n}} \]
+\end{block}
+\begin{itemize}
+\item Notice that this is only helpful if $S(\cls,n) \ll 2^n$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{VC Dimension}
+\begin{itemize}
+\item Let $k \geq 1$ be the largest integer such that
+\[ s(\mathcal A, k) = 2^k \]
+This is the \emph{VC dimension} of $\mathcal A$ (or $\cls$), which will also be denoted $V_{\mathcal A}$ (or $V_\cls$)
+\begin{block}{Bound on Shatter Coefficient}
+If $V_\cls > 2$, then $S(\cls, n) \leq n^{V_\cls}$
+\end{block}
+\item In other words, the shatter coefficient either grows exactly as $2^n$, or is bounded by a polynomial.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bounds}
+\begin{block}{Bound using VC dimension}
+If $V_\cls > 2$, then
+\[ \Pr{ L(\phi^*_n) - \inf_{\phi \in \cls} (\phi) > \eps } \leq 8 ne^{-2V_\cls \eps^2/128} \]
+Also
+\[ \E{L(\phi^*_n)} - \inf_{\phi\in\cls} L(\phi) \leq 16 \sqrt{\frac{V_\cls \log(n) + 4}{2n}} \]
+\end{block}
+\end{frame}
+
+\begin{frame}{Bounds}
+\begin{itemize}
+\item In particular, this means that with high probability
+\[ L(\phi^*_n) - \inf_{\phi\in\cls} L(\phi) \leq \mathcal{O}\pa{\sqrt{\frac{V_\cls}{n} \log n }} \]
+\item It turns out something a little stronger is true (Talagrand 1994):
+\[ L(\phi^*_n) - \inf_{\phi\in\cls} L(\phi) \leq \mathcal{O}\pa{\sqrt{\frac{V_\cls}{n} \log\frac{n}{V_\cls}}} \]
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Classifier selection}
+\begin{itemize}
+\item For a given algorithm of selecting a classifier from data, we also would like to know how much data we need to ensure a certain level of accuracy with certain confidence
+\item We say that $N(\eps,\delta)$ is the \emph{sample complexity} of an algorithm if it is the smallest integer such that if $n \geq N(\eps,\delta)$, then if $g_n$ is the selected classifier,
+\[ \sup_{(X,Y)} \Pr{ L(g_n) - \inf_{\phi \in \cls} L(\phi) > \eps} \leq \delta \]
+whenever $n \geq N(\eps,\delta)$
+\begin{block}{Sample complexity of Empirical Risk Minimization}
+\[ N(\eps, \delta) \leq \max\pa{ \frac{512 V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}, \frac{256}{\eps^2}\log\frac8\delta}\]
+\end{block}
+\end{itemize}
+\end{frame}
+
+\section{Generative vs. Discriminative}
+\subsection{Discriminative}
+\begin{frame}{Discriminative classifiers}
+\begin{itemize}
+\item So far we have been looking at classifiers that are trying to approximate the Bayes classifier $\Pr{Y|X}$, as
+\[ \hat{L}_n(\phi) \defeq \frac1n \sum_{i=1}^n \I_{\phi(X_i) \ne Y_i} \]
+\item These are called \emph{discriminative classifiers}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Logistic Regression}
+\begin{itemize}
+\item For example, let $\cls$ be the class of linear classifiers
+\item Then one discriminative model is logistic regression
+\begin{block}{Logistic Regression}
+\[ \Pr{Y=1|X;\beta,\theta} = \frac1{1+exp(\an{\beta,X} + \theta)} \]
+We can write a discriminant for this classifier:
+\[ D(X) = \an{\beta,X} + \theta = \sum_{i=1}^d \beta_i X_i + \theta \]
+where $1$ is chosen if $D(X) > 0$, and 0 otherwise.
+\end{block}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Convergence for logistic regression}
+\begin{itemize}
+\item Let $\phi_n$ minimize $\hat{L}_n(\phi)$
+\item We have all this machinery for bounding convergence of linear models, so we can say that with high probability,
+\[ L(\phi_n) - \inf_{\phi \in \cls} \leq \mathcal O \pa{ \sqrt{\frac{V_\cls}{n} \log\frac{n}{V_\cls}}} \]
+\begin{block}{VC dimension of linear classifiers}
+If $\cls$ is the class of linear classifiers in $\R^d$, then $V_\cls = d+1$.
+\end{block}
+\item Thus the rate of convergence is slightly worse than $\sqrt{\frac1n}$
+\end{itemize}
+\end{frame}
+
+\subsection{Generative}
+\begin{frame}{Generative classifiers}
+\begin{itemize}
+\item We could also select a classifier that optimizes some other function, for example one that tries to approximate the joint distribution $\Pr{X,Y} = \Pr{X|Y} \cdot \Pr{Y}$
+\item Thinking back to our first idea of how the data was generated, this is precisely trying to model that, and so these models are called \emph{generative classifiers}, and compute $\Pr{Y|X}$ from $\Pr{X,Y}$, typically in a Bayesian way
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Naive Bayes}
+\begin{itemize}
+\item If we make a strong (naive) independence assumption amongst the features, we can then say that
+\begin{block}{Naive Bayes}
+\[ \Pr{Y=1|X} \propto \Pr{Y=1} \prod_{i=1}^d \Pr{X_i | Y=1} \]
+Equivalently, naive Bayes decides to label $1$ if the following is greater than 1:
+\[ \frac{\Pr{Y=1|X}}{\Pr{Y=0|X}} = \frac{\Pr{Y=1}}{\Pr{Y=0}} \prod_{i=1}^d \frac{\Pr{X_i|Y=1}}{\Pr{X_i|Y=0}} \]
+\end{block}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A linear classifier?}
+\begin{itemize}
+\item Notice that also equivalently, the discriminant for naive Bayes is:
+\[ D(x) = \log \frac{\Pr{Y=1|X}}{\Pr{Y=0|X}} = \underbrace{\log\frac{\Pr{Y=1}}{\Pr{Y=0}}}_{\theta?} +  \underbrace{\sum_{i=1}^d \log \frac{\Pr{X_i|Y=1}}{\Pr{X_i|Y=0}}}_{\an{\beta,X}?} \]
+\item This looks a lot like the definition of a linear classifier, and indeed naive Bayes and logistic regression are a \emph{generative-discriminative pair}, in that abstractly they differ only in what they attempt to approximate
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Error for Naive Bayes}
+\begin{itemize}
+\item Let $\phi_n$ be a logistic regression on $n$ datapoints, and $\psi_n$ naive Bayes on $n$ datapoints
+\item Simply due to the difference between generative and discriminative classifiers,
+\[ \hat{L}(\phi_n) \leq \hat{L}(\psi_n) \]
+\item Additionally, letting $\phi^*$ and $\psi^*$ be the appropriate classifiers trained on the entire population, then
+\[ L(\phi^*) \leq L(\psi^*) \]
+\item However, we might want to know the convergence rate for naive Bayes as well
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Convergence for Naive Bayes}
+\begin{block}{Convergence for Naive Bayes (Ng and Jordan, 2002}
+Assume  $\rho_0 \leq \Pr{Y=1} \leq 1 - \rho_0$, and $Var(X_i) \geq \rho_0$ for $i=1,\ldots,d$. Then, with high probability,
+\[ L(\psi_n) \leq L(\psi^*) + G\pa{\mathcal O\pa{\sqrt{\frac1n \log d}}} \]
+where
+\[ G(\tau) = \Pr{ \br{(X,1) : D_{\psi^*}(X) \in [0,d\tau]} \cup \br{(X,0) : D_{\psi^*}(X) \in [-d\tau,0]}} \]
+in other words, the probability of the population classifier coming within $d\tau$ of making an error
+\end{block}
+\begin{itemize}
+\item Thus if $G(\tau) \leq \mathcal{O}(\tau)$, we have a convergence rate of $\sqrt{\frac1n}$, \emph{better than logistic regression}
+\item This bound on $G(\tau)$ is plausibly true in the real world
+\end{itemize}
+\end{frame}
+
+\subsection{Comparison of Error}
+\begin{frame}{Tradeoff}
+\begin{itemize}
+\item Asymptotically, logistic regression performs better than naive Bayes as a classifier
+\item However, for small $n$, naive Bayes might actually do better, due to possibly faster convergence
+\end{itemize}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}{Conclusions}
+\begin{itemize}
+\item We would like to be able to bound the error of the classifier we choose from a class $\cls$, and we can do so...
+\begin{itemize}
+\item ...when $\abs{\cls}$ is finite
+\item ...when $\cls$ has finite fingering dimension
+\item ...when $\cls$ has finite VC dimension
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Counter intuition}
+\begin{itemize}
+\item However, discriminative classifiers are not the only type
+\item It turns out that while generative classifiers are not explicitly trained to minimize errors, for smallish $n$ they can out-perform discriminative classifiers
+\end{itemize}
+\end{frame}
+
+\end{document}
