@@ -7,10 +7,11 @@ import pickle
 import codecs
 import logging
 from itertools import chain
+import numpy as np
 #from steamroller.tools.io import read_data, write_probabilities, writer, reader, extract_character_ngrams
 #from steamroller.tools.io import read_data, write_probabilities, writer, reader
 
-#import svd_bayes
+from svd import SVDSelect
 from patrick_tools import read_data, write_probabilities
 from patrick_tools import extract_bow, extract_word_ngrams, extract_hybrid, NgramGlue, Truncator
 
@@ -33,6 +34,7 @@ preprocessors = {
     "none" : (DictVectorizer),
     "glue" : (NgramGlue),
     "trunc" : (Truncator),
+    "svd": (SVDSelect)
 }    
 
 def train(output, input, token, modeltype, max_ngram, preproc='none', preproc_args=[], train_split=[]):
@@ -81,6 +83,14 @@ def test_batch(instances, gold, dv, label_lookup, classifier, data):
   if hasattr(classifier, "predict_log_proba"):
       for probs, (cid, g) in zip(classifier.predict_log_proba(X), gold):
           data[cid] = (g, {k : v for k, v in zip(order, probs.flatten())})
+  elif hasattr(classifier, "decision_function"):
+    for probs, (cid, g) in zip(classifier.decision_function(X), gold):
+      if not hasattr(probs, '__len__'):
+        p = 1. / (np.exp(probs) + 1)
+        probs = np.array([ np.log(p), np.log(1-p)])
+      else:
+        logging.info('Multiple class SVM has not been tested!')
+      data[cid] = (g, {k : v for k, v in zip(order, probs.flatten())})  
   else:
       for pred, (cid, g) in zip(classifier.predict(X), gold):
           if type(pred) != list:

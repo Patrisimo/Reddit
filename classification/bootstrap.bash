@@ -57,25 +57,6 @@ else
 	fname=${2}_random_init.tsv.gz
 fi
 
-python doitall.py train_classifier $fname $docs naive_bayes $tokenizer ${basename}_nb1 --max_ngram $max_ngram
-echo "^ nb1"
-python doitall.py train_classifier $fname $docs naive_bayes $tokenizer ${basename}_nb2 --max_ngram $max_ngram
-echo "^ nb2"
-python doitall.py train_classifier $fname $docs naive_bayes $tokenizer ${basename}_nb3 --max_ngram $max_ngram
-echo "^ nb3"
-
-python doitall.py train_classifier $fname $docs logistic_regression $tokenizer ${basename}_lr1 --max_ngram $max_ngram
-echo "^ lr1"
-python doitall.py train_classifier $fname $docs logistic_regression $tokenizer ${basename}_lr2 --max_ngram $max_ngram
-echo "^ lr2"
-python doitall.py train_classifier $fname $docs logistic_regression $tokenizer ${basename}_lr3 --max_ngram $max_ngram
-echo "^ lr3"
-
-python doitall.py train_classifier $fname $docs svm $tokenizer ${basename}_svm1 --max_ngram $max_ngram
-echo "^ svm1"
-python doitall.py train_classifier $fname $docs svm $tokenizer ${basename}_svm2 --max_ngram $max_ngram
-echo "^ svm2"
-python doitall.py train_classifier $fname $docs svm $tokenizer ${basename}_svm3 --max_ngram $max_ngram
-echo "^ svm3"
+python compare.py $fname $docs $basename
 
 bash bootstrap2.bash $1 $2 $3 "$prune" $basename $tokenizer $max_ngram

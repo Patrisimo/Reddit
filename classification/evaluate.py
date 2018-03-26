@@ -2,7 +2,7 @@ import gzip
 from argparse import ArgumentParser
 import numpy as np
 from matplotlib import pyplot as plt
-
+import codecs
 
 def evaluate_wrapper(ops):
   return evaluate(ops.probs)
@@ -10,7 +10,7 @@ def evaluate_wrapper(ops):
 def roc_wrapper(ops):
   return roc(ops.probs, output=ops.output, plot=ops.plot)
 
-def evaluate(probs):
+def evaluate(probs, verbose=True):
   score = 0
   with gzip.open(probs) as file:
     header = file.readline().decode().strip().split('\t')
@@ -37,22 +37,25 @@ def evaluate(probs):
         score += (np.exp(scoresSorted[0][1]) - np.exp(scores[correctIndex])) if correctIndex < len(scores) else np.exp(scoresSorted[0][1])
       numIdentified[scoresSorted[0][0]] += 1
 
-        
-  print('Evaluation:')
-  for label, position in sorted(labels.items(), key=lambda x: x[0]):
-    print('%s: %d/%d' % (label, numCorrect[position], numLabels[position]))
-  print('\nOverall prob: %f' % (score / sum(numLabels)))
   if len(numLabels) == 2:
     i = 0 if numLabels[0] < numLabels[1] else 1 # Pick the smaller class
     fscore = 2. * numCorrect[i] / (numLabels[i] + numIdentified[i])
-    print('F-score: %f' % fscore)
   elif len(numLabels) > 2:
     fscores = [0]*len(numLabels)
     for i in range(len(numLabels)):
       #precision = numCorrect[i] / numIdentified[i]
       #recall = numCorrect[i] / numLabels[i]
       fscores[i] = 2. * max(numCorrect[i], 0.01) / (numLabels[i] + numIdentified[i])
-    print('F-score: %f' % ( len(fscores) / sum( 1./f for f in fscores)))
+    fscore =  len(fscores) / sum( 1./f for f in fscores)
+        
+  if verbose:
+    print('Evaluation:')
+    for label, position in sorted(labels.items(), key=lambda x: x[0]):
+      print('%s: %d/%d' % (label, numCorrect[position], numLabels[position]))
+    print('\nOverall prob: %f' % (score / sum(numLabels)))
+    print('F-score: %f' % fscore)
+    
+  return {'fscore': fscore, 'correct': numCorrect, 'labels': numLabels, 'identified': numIdentified}
 
 def roc(probs, output=None, plots=False):
   classifications = []
