@@ -122,4 +122,6 @@ def area(data):
 if __name__=='__main__':
   ops = options()
   logging.basicConfig(level=logging.INFO)
+  logger = logging.getLogger('my-logger')
+  logger.propagate = False
   train_classifier(ops)

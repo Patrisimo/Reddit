@@ -3,7 +3,7 @@ from scipy import sparse
 import numpy as np
 
 class SVDSelect():
-  def __init__(self, n_components):
+  def __init__(self, n_components=100):
     self.n_components=int(n_components)
     self.vocab={}
     self.feature_names=[]

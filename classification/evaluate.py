@@ -8,7 +8,7 @@ def evaluate_wrapper(ops):
   return evaluate(ops.probs)
 
 def roc_wrapper(ops):
-  return roc(ops.probs, output=ops.output, plot=ops.plot)
+  return roc(ops.probs, output=ops.output, plots=ops.plot)
 
 def evaluate(probs, verbose=True):
   score = 0
@@ -87,6 +87,10 @@ def roc(probs, output=None, plots=False):
       if pred == '1':
         false_yes += 1
     rocs.append( (div(false_yes, total_no), div(true_yes ,total_yes)))
+  if plots:
+    plt.scatter( [x for x,y in rocs], [y for x,y in rocs])
+    plt.scatter( [i/100. for i in range(100)], [i/100. for i in range(100)])
+    plt.show()
   return rocs
 
 def roc2(probs, output=None, plots=False):
@@ -137,7 +141,7 @@ if __name__=='__main__':
   parser_roc = subparsers.add_parser('roc')
   parser_roc.add_argument('probs')
   parser_roc.add_argument('-o','--output')
-  parser_roc.add_argument('-p','--plot')
+  parser_roc.add_argument('-p','--plot', default=False, action="store_true")
   
   parser_ev = subparsers.add_parser('evaluate')
   parser_ev.add_argument('probs')

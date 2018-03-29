@@ -3,7 +3,7 @@
 # $2 is language name
 # $3 is number of runs to do
 # $4 is whether to prune
-# $5 is tokenizer
+
 
 max_ngram=1
 prune=''
