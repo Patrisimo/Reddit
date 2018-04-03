@@ -57,14 +57,14 @@ def extract_bow(text, n=None):
 
 
 def extract_word_ngrams(text, n):
-    stack = ["NULL" for _ in xrange(n)]
+    stack = ["NULL" for _ in range(n)]
     ngrams = {}
-    words = filter(lambda c: c.isalnum() or c in ' -', text.lower()).split()
+    words = re.findall('\w(?:(?:\w|[-\'])*\w)?', text.lower())
     for w in words:
         stack = stack[1:]
         stack.append(w)
         ngrams[tuple(stack)] = ngrams.get(tuple(stack),0) + 1
-    return list(ngrams.iteritems())
+    return list(ngrams.items())
 
 def extract_hybrid(text, n):
     stack = ["NULL" for _ in xrange(n)]
@@ -128,7 +128,7 @@ class NgramGlue():
         print("Collecting data")
         total_grams = dict_sum(instances) # This is the total count of the n-gram
         
-        queue = deque( NgramGlue.Node(gram, count) for gram,count in total_grams.items() )
+        queue = deque( NgramGlue.Node(gram, count) for gram,count in total_grams.items() ) # All the n-grams
         root = NgramGlue.Node('', -1)
         root.left_edges_out = [ n for n in queue ]
 
