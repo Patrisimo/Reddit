@@ -14,9 +14,11 @@ from os import path
 class MyEmbed():
   def __init__(self, embed):
     self.vocab = embed
+    self.size = embed.values().__iter__().__next__().shape[0]
   def __getitem__(self, item):
     return self.vocab[item]
-
+  def size(self):
+    return self.size
 
 def options():
   parser = ArgumentParser()
@@ -69,12 +71,12 @@ def extract_words_nb(ops):
   
       
 def load_embeddings(fname):
-  ext = path.splitext(ops.embeddings)[1]
+  ext = path.splitext(fname)[1]
   
   if ext == '.kv':
-    model = KeyedVectors.load(ops.embeddings)
+    model = KeyedVectors.load(fname)
   elif ext == '.pkl':
-    with open(ops.embeddings, 'rb') as file:
+    with open(fname, 'rb') as file:
       model = pickle.load(file, encoding='latin-1')
   return model
       
@@ -178,7 +180,7 @@ def make_nb(ops):
 def extract_words_lrsvm(ops):
   # TODO
   with gzip.open(ops.model) as ifd:
-    classifier, dv, label_lookup = pickle.load(ifd)
+    classifier, dv, label_lookup, tokenizer = pickle.load(ifd)
   names = dv.get_feature_names()
   
   if ops.min > 0:
@@ -198,8 +200,9 @@ def extract_words_lrsvm(ops):
     coefs = enumerate(classifier.coef_[0])
   tokens = sorted(coefs, key=lambda x: x[1])
   
-  to_translate = tokens[:ops.k//2]
-  to_translate.extend(tokens[-ops.k//2:])
+  side = -1 if label_lookup['1'] == 1 else 1
+  to_translate = tokens[:ops.k:side]
+  #to_translate.extend(tokens[-ops.k//2:])
   
   source_lang = [ (names[i], r) for i,r in to_translate]
   
@@ -223,7 +226,7 @@ def make_lrsvm(ops):
   
     
   with gzip.open(ops.model) as ifd:
-    classifier, dv, label_lookup = pickle.load(ifd)
+    classifier, dv, label_lookup, tokenizer = pickle.load(ifd)
   model = load_embeddings(ops.embeddings)
       
   target_wdups = []
@@ -248,8 +251,9 @@ def make_lrsvm(ops):
   for w, (coef, c) in joined_scores.items():
     if w in model.vocab:
       anchors.append( (coef, model[w] / np.sqrt(np.square(model[w]).sum())))
-      anchor_words[w] = coef
-  
+    anchor_words[w] = coef
+    
+      
   target_vocab = {}
   reader = codecs.getreader('utf-8')
   with reader(gzip.open(ops.corpus)) as file:
@@ -258,24 +262,21 @@ def make_lrsvm(ops):
       for w in re.findall('\w(?:\w|[-\'])*\w', info[2].lower()):
         target_vocab[w] = 1+target_vocab.get(w,0)
         
-  common_words = [(w,c) for w,c in target_vocab.items() if c > 100]
-  all_words = []
-  for w,c in common_words:
-    if w not in model.vocab:
-      continue
-    if w in anchor_words:
-      all_words.append( (w, anchor_words[w], c))
+  common_words = [w for w,c in target_vocab.items() if c > 100]
+  all_words = [(w,coef) for w,coef in anchor_words.items()]
+  for w in common_words:
+    if w in anchor_words or w not in model.vocab:
       continue
     vec = model[w] / np.sqrt(np.square(model[w]).sum())
     
-    neighbs = [(coef, np.dot(v, vec)) for coef,v in anchors]
+    neighbs = [(coef, np.exp(np.dot(v, vec))) for coef,v in anchors]
     neighbs = sorted(neighbs, key=lambda x: x[1], reverse=True)[:5]
     coef = sum( y*d for y,d in neighbs) / sum(d for _,d in neighbs)
-    all_words.append( (w, coef, c))
+    all_words.append( (w, coef))
 
   
   coef_ = np.zeros( (1,len(all_words)))
-  total_words = sum(c for _,_,c in all_words)
+
   y = label_lookup['1']
   n = label_lookup['0']
   all_words = sorted(all_words, key=lambda x: x[0])
@@ -284,8 +285,8 @@ def make_lrsvm(ops):
   newnames = []
   newmodel = classifier
   newdv = dv
-  for i,(w,p,c) in enumerate(all_words):
-    coef_[0,i] = p
+  for i,(w,coef) in enumerate(all_words):
+    coef_[0,i] = coef
     newnames.append(w)
     newvocabulary[w] = i
     
@@ -296,7 +297,7 @@ def make_lrsvm(ops):
 
   logging.info('Saving new model in %s.model.gz' % ops.output)
   with gzip.open('%s.model.gz' % ops.output,'wb') as ofd:
-    pickle.dump((newmodel, newdv, label_lookup),ofd)
+    pickle.dump((newmodel, newdv, label_lookup, tokenizer),ofd)
     
 methods_nb = {'extract_words': extract_words_nb,
             'make': make_nb}

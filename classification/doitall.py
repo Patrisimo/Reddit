@@ -35,7 +35,6 @@ def options():
   parser_pc = subparsers.add_parser('pick', help='pick documents based on classifier judgements')
   parser_pc.add_argument("input", help='gzipped tsv')
   parser_pc.add_argument("model", help='gz of previously trained classifier')
-  parser_pc.add_argument("token", choices=patrick_algs.tokenizers.keys(), help='tokenizer to use for classifier')
   parser_pc.add_argument('k', type=int, help='Number of messages to select')
   parser_pc.add_argument("output", help='basename for output, will be given appropriate extension')
   parser_pc.add_argument("--max_ngram", type=int, default=4)    
@@ -108,7 +107,6 @@ def train_classifier(ops):
   #def test(output, input, token, model, max_ngram):
   test_args = {'output': ops.output, 
                 'input': ops.input, 
-                'token': ops.token, 
                 'model': '%s.model.gz' % ops.output, 
                 'max_ngram': ops.max_ngram,
                 'test_split': test_split}
@@ -129,7 +127,6 @@ def pick_from_classifier(ops):
   # First, run the classifier over everything
   test_args = {'output': '%s.all' % ops.output,
                 'input': ops.input,
-                'token': ops.token,
                 'model': ops.model,
                 'max_ngram': ops.max_ngram}
   patrick_algs.test(**test_args)

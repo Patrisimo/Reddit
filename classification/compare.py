@@ -6,6 +6,7 @@ import patrick_algs, evaluate
 import json
 import logging
 import numpy as np
+import gzip
 
 writer = codecs.getwriter('utf-8')
 reader = codecs.getreader('utf-8')
@@ -17,7 +18,7 @@ def options():
   #parser.add_argument('branch', choices=methods.keys())
 
   parser.add_argument("input",  help='gzipped tsv of input data')
-  parser.add_argument('k', type=int, help='Number of documents to input')
+  #parser.add_argument('k', type=int, help='Number of documents to input')
   # parser_tc.add_argument("type",  choices=patrick_algs.models.keys(), help='type of classifier to use')
   # parser_tc.add_argument("token",  choices=patrick_algs.tokenizers.keys(), help='tokenizer to use for classifier')
   parser.add_argument("output",  help='basename for output, will be given appropriate extension')
@@ -26,6 +27,7 @@ def options():
   # parser_tc.add_argument("--preproc-args", dest="preproc_args", nargs='*', default=[], help='arguments for preprocessor')
   parser.add_argument('--config', help='json of run data', default='config.json')
   
+  
   return parser.parse_args()
 
 def train_classifier(ops):
@@ -33,10 +35,17 @@ def train_classifier(ops):
   #def train(output, input, token, modeltype, max_ngram, preproc, preproc_args):
   # Need to split up the data
   # run is {'folds': n, 'name':, 'token':, 'modeltype':, 'max_ngram':, 'preproc':, 'preproc_args':}
+  reader = codecs.getreader('utf-8')
   
-  test_split = set(random.sample(range(ops.k), ops.k // 5))
+  k = 0
+  with reader(gzip.open(ops.input)) as infile:
+    for line in infile:
+      k += 1
+        
+        
+  test_split = set(random.sample(range(k), k // 5))
   train_split = set()
-  for i in range(ops.k):
+  for i in range(k):
     if i not in test_split:
       train_split.add(i)
   
@@ -46,9 +55,9 @@ def train_classifier(ops):
     
   data = {}  
   for i in range(runs['folds']):    
-    test_split = set(random.sample(range(ops.k), ops.k // 5))
+    test_split = set(random.sample(range(k), k // 5))
     train_split = set()
-    for n in range(ops.k):
+    for n in range(k):
       if n not in test_split:
         train_split.add(n)
     for run in runs['data']:
@@ -56,7 +65,7 @@ def train_classifier(ops):
       if run['name'] not in data:
         data[run['name']] = []
       run_info={}
-      train_args = {'output': '%s_%s_%d' % (ops.output, run['name'], i),
+      train_args = {'output': '%s_%s_%d' % (ops.output, run['name'], i+1),
                 'input': ops.input, 
                 'token': run.get('token', None), 
                 'modeltype': run.get('modeltype', None), 
@@ -68,18 +77,17 @@ def train_classifier(ops):
   
   # Now let's test the algorithm
   #def test(output, input, token, model, max_ngram):
-      test_args = {'output': '%s_%s_%d' % (ops.output, run['name'], i),
+      test_args = {'output': '%s_%s_%d' % (ops.output, run['name'], i+1),
                 'input': ops.input, 
-                'token': run.get('token', None), 
-                'model': '%s_%s_%d.model.gz' % (ops.output, run['name'], i),
+                'model': '%s_%s_%d.model.gz' % (ops.output, run['name'], i+1),
                 'max_ngram': run.get('max_ngram', None),
                 'test_split': test_split}
       patrick_algs.test(**test_args)
   
   # And evaluate performance
-      print('Model saved in %s_%s_%d.model.gz' % (ops.output, run['name'], i))
-      eval_info = evaluate.evaluate('%s_%s_%d.prob.gz' % (ops.output, run['name'], i))
-      roc_info = evaluate.roc('%s_%s_%d.prob.gz' % (ops.output, run['name'], i))
+      print('Model saved in %s_%s_%d.model.gz' % (ops.output, run['name'], i+1))
+      eval_info = evaluate.evaluate('%s_%s_%d.prob.gz' % (ops.output, run['name'], i+1))
+      roc_info = evaluate.roc('%s_%s_%d.prob.gz' % (ops.output, run['name'], i+1))
       run_info['fscore'] = eval_info['fscore']
       run_info['accuracies'] =  [ (nc, nl) for nc, nl in zip(eval_info['correct'], eval_info['labels'])]
       run_info['roc'] = roc_info
@@ -92,7 +100,7 @@ def train_classifier(ops):
     for name in ['fscore', 'area']:
       print('%7s|' % name, end='')
       for run_data in data.values():
-        print('%7f|' % run_data[i][name], end='')
+        print('%6f|' % run_data[i][name], end='')
       print('')
       
   print('Average')

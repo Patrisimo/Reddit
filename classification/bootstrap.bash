@@ -47,7 +47,6 @@ if [[ $prune ]]
 then
 	python doitall.py prune ${2}_random_init.tsv.gz 0.33 ${2}_random_init_pruned
 fi
-read -p "How many documents? " docs
 
 basename=${2}_random_init
 if [[ $prune ]]
@@ -57,6 +56,6 @@ else
 	fname=${2}_random_init.tsv.gz
 fi
 
-python compare.py $fname $docs $basename
+python compare.py $fname $basename
 
 bash bootstrap2.bash $1 $2 $3 "$prune" $basename $tokenizer $max_ngram

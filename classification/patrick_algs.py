@@ -11,7 +11,7 @@ import numpy as np
 #from steamroller.tools.io import read_data, write_probabilities, writer, reader, extract_character_ngrams
 #from steamroller.tools.io import read_data, write_probabilities, writer, reader
 
-from svd import SVDSelect
+from svd import SVDSelect, PLSRSelect
 from patrick_tools import read_data, write_probabilities
 from patrick_tools import extract_bow, extract_word_ngrams, extract_hybrid, NgramGlue, Truncator
 
@@ -34,7 +34,8 @@ preprocessors = {
     "none" : (DictVectorizer),
     "glue" : (NgramGlue),
     "trunc" : (Truncator),
-    "svd": (SVDSelect)
+    "svd": (SVDSelect),
+    "plsr": (PLSRSelect)
 }    
 
 def train(output, input, token, modeltype, max_ngram, preproc='none', preproc_args=[], train_split=[]):
@@ -48,7 +49,11 @@ def train(output, input, token, modeltype, max_ngram, preproc='none', preproc_ar
   args = { preproc_args[2*i]: preproc_args[2*i+1] for i in range(len(preproc_args)//2)}
   dv = dv_class(**args)
 
-  X = dv.fit_transform(instances)
+  if type(dv) == PLSRSelect:
+    X = dv.fit_transform(instances, labels)
+  else:
+    X = dv.fit_transform(instances)
+    
   label_lookup = {}
   classifier_class, args, hypers = models[modeltype]
   classifier = classifier_class(**args)
@@ -57,13 +62,12 @@ def train(output, input, token, modeltype, max_ngram, preproc='none', preproc_ar
   logging.info("Training with %d instances, %d labels", len(instances), len(label_lookup))
   classifier.fit(X, [label_lookup[l] for l in labels])
   with gzip.open('%s.model.gz' % output, "wb") as ofd:
-      pickle.dump((classifier, dv, label_lookup), ofd)    
+      pickle.dump((classifier, dv, label_lookup, tokenizer), ofd)    
       
-def test(output, input, token, model, max_ngram, test_split=[]):
+def test(output, input, model, max_ngram, test_split=[]):
   with gzip.open(model) as ifd:
-    classifier, dv, label_lookup = pickle.load(ifd)
+    classifier, dv, label_lookup, tokenizer = pickle.load(ifd)
   instances, gold = [], []
-  tokenizer = tokenizers[token]
   data = {}
   for cid, label, text in read_data(input, test_split):
     instances.append(dict(tokenizer(text, max_ngram)))

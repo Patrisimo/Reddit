@@ -157,9 +157,9 @@ class NgramGlue():
         # compute scores
         print("Computing scores")
         total_count = sum(total_grams.values())
-        for node in nodes.values():
+        for key, node in list(nodes.items()):
             if node.count == 0:
-              nodes.pop(node.name)
+              nodes.pop(key)
               for n in node.left_edges_in:
                 n.left_edges_out.remove(node)
               for n in node.right_edges_in:
@@ -178,7 +178,7 @@ class NgramGlue():
                 cond_prob.append( left.logp + right.logp )
             denom = sum([np.exp(c) for c in cond_prob])
             if denom == 0:
-                node.logglue = node.logp
+                node.logglue = 0
             else:
                 denom /= len(cond_prob)
                 node.logglue = 2*node.logp - np.log(denom)
@@ -202,7 +202,8 @@ class NgramGlue():
                 for n in chain(node.left_edges_in, node.left_edges_out, 
                           node.right_edges_in, node.right_edges_out):
                     n.candidate = False
-            node.candidate = False
+            else:
+              node.candidate = False
         # Now to only select the dominant features
         print("Reducing data")
         

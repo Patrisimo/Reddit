@@ -106,7 +106,7 @@ Johns Hopkins University}
 \newcommand{\defeq}{\vcentcolon=}
 \newcommand{\eqdef}{=\vcentcolon}
 \newcommand{\pa}[1]{\left( #1 \right)}
-\newcommand{\I}{\mathbb{1}}
+\newcommand{\I}{\mathds{1}}
 \newcommand{\abs}[1]{\left| #1 \right|}
 \newcommand{\br}[1]{\left\{ #1 \right\} }
 \newcommand{\eps}{\varepsilon}
@@ -240,8 +240,8 @@ and
 \begin{frame}{Proof of Probability Bound- Sketch}
 \begin{align*}
 \Pr{ L(\phi^*_n) > \eps } & \leq \Pr{ \max_{\phi \in \cls, \hat{L}_n(\phi) = 0} L(\phi) > \eps} \\
-	& = \E{ \mathds{1}_{\max_{\phi \in \cls, \hat{L}_n(\phi) = 0} L(\phi) > \eps}} \\
-	& = \E {\mathds{1}_{\max_{ \phi \in \cls, L(\phi) > \eps} \hat{L}_n(\phi) = 0}} \\
+	& = \E{ \mathds{1}_{\max_{\br{\phi \in \cls, \hat{L}_n(\phi) = 0}} L(\phi) > \eps}} \\
+	& = \E { \max_{\phi \in \cls}\pa{ \mathds{1}_{ L(\phi) > \eps} \mathds{1}_{\hat{L}_n(\phi) = 0}}} \\
 	& \leq  \sum_{\phi \in \cls, L(\phi) > \eps} \Pr{ \hat{L}_n (\phi) = 0}  \\
 	& \leq \abs{\cls} \pa{1-\eps}^n \\
 	& \leq \abs{\cls} e^{-n\eps} \end{align*}
@@ -309,13 +309,12 @@ and
 \begin{frame}{Shatter Coefficient}
 \begin{itemize}
 \item Another way of assigning a number to a class $\cls$ is by looking at the shatter coefficient and the VC dimension
-\item Recall that a class of classifiers $\cls$ induces a class of sets $\mathcal A$
+% \item Recall that a class of classifiers $\cls$ induces a class of sets $\mathcal A$
 \begin{block}{Shatter Coefficient}
-The $n$-th \emph{shatter coefficient} of a class of sets $\mathcal{A}$ is
-\[ S(\cls, n) = s(\mathcal A, n) \defeq \max_{(z_1,\ldots,z_n)\in (\R^d)^n} \abs{ \br{ \br{z_1, \ldots, z_n} \cap A_1 : A \in \mathcal A}} \]
-Where $A_1 \defeq \{X \in \R^d : (X,1) \in A\}$.
+The $n$-th \emph{shatter coefficient} of a class $\cls$ is
+\[ S(\cls, n) \defeq \max_{(z_1,\ldots,z_n)\in (\R^d)^n} \abs{ \br{ \br{z_1, \ldots, z_n} \cap \phi^{-1}\pa{\br{1}} : \phi \in \cls}} \]
 \end{block}
-\item Immediately we see that $s(\mathcal A, n) \leq 2^n$
+\item Immediately we see that $s(\cls, n) \leq 2^n$
 \end{itemize}
 \end{frame}
 
@@ -348,11 +347,12 @@ Also
 
 \begin{frame}{Proof of Bounds - Sketch}
 \begin{enumerate}
-\item[4] Hoeffding and expectation
+\setcounter{enumi}{3}
+\item Hoeffding and expectation
 \[ \E{\Pr{\left.\frac1n \abs{\sum_{i=1}^n \sigma_i \mathds{1}_{Z_i \in A}} > \eps/4 \right| Z_1,\ldots,Z_n}} \leq 2e^{-n\eps^2/32} \]
-\item[5] Union Bound
+\item Union Bound
 \begin{align*}
-  \Pr{ L(\phi^*_n) - \inf_{\phi \in \cls}(\phi) > \eps} & \leq \Pr{ \sup_{A \in \mathcal{A}} \abs{\nu_n(A) - \nu(A)} > \eps/2} \\
+  \Pr{ L(\phi^*_n) - \inf_{\phi \in \cls}L(\phi) > \eps} & \leq 2\Pr{ \sup_{A \in \mathcal{A}} \abs{\nu_n(A) - \nu(A)} > \eps/2} \\
 	& \leq 8 S(\cls,n)e^{-n\eps^2/128}\end{align*}
 \end{enumerate}
 \end{frame}
@@ -403,10 +403,10 @@ whenever $n \geq N(\eps,\delta)$
 \begin{frame}{Proof of sample complexity - Sketch}
 The tricky part is seeing that $n^{V_\cls} \leq e^{n\eps^2/256}$ for $n = \frac{512V_\cls}{\eps^2}\log\frac{256V_\cls}{\eps^2}$, and thus true for all subsequent $n$:
 \begin{align*}
-& \frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2} \leq \pa{\frac{256V_\cls}{\eps^2}}^2 \\
-\Rightarrow & \log\pa{\frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}} \leq 2 \log \pa{\frac{256V_\cls}{\eps^2}} \\
-\Rightarrow & \log\pa{\frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}}^{V_\cls} \leq 2V_\cls \log \pa{\frac{256V_\cls}{\eps^2}} \\
-\Rightarrow & \log\pa{\frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}}^{V_\cls} \leq \frac{\eps^2}{256} \pa{ \frac{512 V_\cls}{\eps^2} \log \pa{\frac{256V_\cls}{\eps^2}}}\end{align*}
+&& \frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}& \leq \pa{\frac{256V_\cls}{\eps^2}}^2 \\
+\Rightarrow && \log\pa{\frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}}& \leq 2 \log \pa{\frac{256V_\cls}{\eps^2}} \\
+\Rightarrow && \log\pa{\frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}}^{V_\cls}& \leq 2V_\cls \log \pa{\frac{256V_\cls}{\eps^2}} \\
+\Rightarrow && \log\pa{\frac{512V_\cls}{\eps^2} \log\frac{256V_\cls}{\eps^2}}^{V_\cls}& \leq \frac{\eps^2}{256} \pa{ \frac{512 V_\cls}{\eps^2} \log \pa{\frac{256V_\cls}{\eps^2}}}\end{align*}
 \end{frame}
 
 \section{Generative vs. Discriminative}
@@ -475,7 +475,7 @@ Equivalently, naive Bayes decides to label $1$ if the following is greater than 
 
 \begin{frame}{Error for Naive Bayes}
 \begin{itemize}
-\item Let $\phi_n$ be a logistic regression on $n$ datapoints, and $\psi_n$ naive Bayes on $n$ datapoints
+\item Given $n$ datapoints, let $\phi_n$ be the logistic regression, and $\psi_n$ the naive Bayes trained on them
 \item Simply due to the difference between generative and discriminative classifiers,
 \[ \hat{L}_n(\phi_n) \leq \hat{L}_n(\psi_n) \]
 \item Additionally, letting $\phi^*$ and $\psi^*$ be the appropriate classifiers trained on the entire population, then
@@ -525,8 +525,8 @@ in other words, the probability of $\psi^*$ coming within $\tau d$ of making an 
 
 \begin{frame}{Counter intuition}
 \begin{itemize}
-\item However, discriminative classifiers are not the only type
-\item It turns out that while generative classifiers are not explicitly trained to minimize errors, for smallish $n$ they can out-perform discriminative classifiers
+\item This allows us to compare the convergence rate of a discriminative classifier to that of a generative one, yielding a somewhat surprising result:
+\item While generative classifiers are not explicitly trained to minimize errors, for smallish $n$ they can out-perform discriminative classifiers
 \end{itemize}
 \end{frame}
 

@@ -225,7 +225,11 @@ Italian-sub & 0.0392& 0.1902& 0.0038\\
 Italian & err& 0.1198& 0.0057\\
 \end{tabular}
 
-
+Since we're going to be looking at Spanish controversiality, here are the results for the actual fscore for each of the classifiers we'll be using.\\
+\begin{tabular}{|*{5}{c|}}
+NB & LR & SVM & LR SVD & SVM SVD \\
+0.01 & 0.10 & 0.06 & 0.09 & 0 \end{tabular}
+In other words, the population f-score for logistic regression should be about 0.10. 
 
 \section{Bootstrapping}
 Recalling that controversial comments make up about 3\% of the documents, and that classifiers are remarkably bad at picking them out, could we maybe train up a classifier to pick them out by bootstrapping? First, a look at the data:\\
@@ -450,6 +454,16 @@ Round 8 & 5000 & 418 (8.4\%) & 2180 (+205) & 0.14 & 0.11 \\
 Round 9 & 5000 & 436 (8.7\%) & 2381 (+201) & 0.11 & 0.12 \\
 Round 10 & 5000 & 406 (8.1\%) & 2580 (+199) & 0.12 & 0.10 \\
 \end{tabular}
+
+\subsection{PLSR}
+Alternatively, we could do partial least squares regression, which tries to maximize the variance with respect to labels, which would hopefully do better than the label-blind SVD. 
+
+
+\begin{tabular}{|c|*{9}{l|}}
+\rowcolor{gray!50} & Doc count & \# Yes (repeats) & \# (total) & LR & LR SVD& LR PLSR \\
+Random init & 5000 & 163 & 163 & 0.13 & 0.10 & 0.12 \\
+Round 1& 5000 & 
+\end{tabular}\\
 
 
 \section{Translating a Classifier}
@@ -714,9 +728,42 @@ Total & 2082 & 2918 & 5000
 \end{tabular}
 \end{center}
 
-
-
 \end{enumerate}
+
+
+\subsection{Word analysis}
+I have two questions:
+\begin{enumerate}
+\item How many words strongly indicate controversiality?
+\item How many documents (and what type of) do those words show up in?
+\end{enumerate}
+Of the 89,331 words recognized by span2trans\_round9\_lr2 (our optimal one), 71,390 are ``not controversial'', and 17,941 are ``controversial''. Binning them a little more: \\
+\begin{tabular}{|*{6}{c|}}
+\multicolumn{6}{|c|}{More controversial $\to$} \\
+$< -2$ & $(-2,-1)$ & (-1,0) & (0,1) & (1,2) & > 2 \\
+1 & 184 & 71,205 & 16,868 & 1,035 & 38 \end{tabular}
+\\
+\begin{tabular}{|*5{c|}}
+& Avg \# Docs & Avg \# Contro docs & Avg \# occ/doc & Avg \# occ/contro doc \\
+$<-2$ &  1280 & 21 (1.6\%) & 1.13 & 1.28 \\
+(-2,-1) & 730 & 19.5 (2.7\%)& 1.15 & 1.11 \\
+(-1,0) & 59.3 & 1.67 (2.8\%)& 1.45 & 1.40 \\
+(0,1) & 133 & 5.0 (3.8\%)& 1.36 & 1.32 \\
+(1,2) & 105 & 6.11 (5.8\%) & 1.15 & 1.11 \\
+$>$ 2 & 43.5 & 5.11 (11.7\%)& 1.11 & 1.10 \end{tabular}
+
+Ok, so controversial words do appear more often in controversial documents than in general, although the frequency is more or less unchanged. What if take the 1,073 words with a controversiality score of at least 1, and create a connection matrix where $w_{ij}$ is the number of controversial documents that contain both word $i$ and $j$? It turns out that this $1073\times1073$ matrix unfortunately doesn't have much low-dimensional structure:\\
+\includegraphics[scale=0.5]{singularvalues.png}\\
+
+Additionally, if we look at the probability that two words with a controversial score of at least 1 in absolute value and cosine distance less than $d$ have controversiality scores of differing sign, we do see a nice correllation:\\
+\includegraphics[scale=0.5]{conditionalperror.png}\\
+And a similar graph for the average difference in controversiality scores:\\
+\includegraphics[scale=0.5]{conditionalavgerror.png}\\
+And repeated graphs using the Euclidean metric\\
+\includegraphics[scale=0.5]{conditionalperror_euclid.png} \includegraphics[scale=0.5]{conditionalavgerror_euclid.png}
+
+Also, what if we force our base points to be (non-)controversial?
+
 
 
 \section{To-Do}

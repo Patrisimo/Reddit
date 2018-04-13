@@ -28,8 +28,7 @@ do
 	else
 		fname=$basename.seen.tsv.gz
 	fi
-	read -p "How many documents? " docs
 
-	python compare.py $fname $docs $basename
+	python compare.py $fname $basename
 	
 done
