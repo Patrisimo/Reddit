@@ -14,11 +14,10 @@ from os import path
 class MyEmbed():
   def __init__(self, embed):
     self.vocab = embed
-    self.size = embed.values().__iter__().__next__().shape[0]
   def __getitem__(self, item):
     return self.vocab[item]
-  def size(self):
-    return self.size
+  def __contains__(self, item):
+    return item in self.vocab
 
 def options():
   parser = ArgumentParser()

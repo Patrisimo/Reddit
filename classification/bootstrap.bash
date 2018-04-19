@@ -18,7 +18,7 @@ while getopts ":pn:" opt; do
 			;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
-			echo "bash $0 corpus output #runs tokenizer"
+			echo "bash $0 corpus output #runs prune"
       ;;
 		:)
 			echo "Option -$OPTARG requires an argument" >&2
